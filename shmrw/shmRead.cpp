@@ -45,7 +45,7 @@ int main(int argc, char **argv)
     }
     if (shmdt(p_map) == -1)
     {
-        perror(" detach error ");
+        perror(" detach error: ");
         return -1;
     }
     //删除共享内存
