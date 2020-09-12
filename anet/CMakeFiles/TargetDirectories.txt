@@ -1,0 +1,4 @@
+/home/xiongbaohua/source/anet/CMakeFiles/rebuild_cache.dir
+/home/xiongbaohua/source/anet/CMakeFiles/edit_cache.dir
+/home/xiongbaohua/source/anet/CMakeFiles/tcpClient.dir
+/home/xiongbaohua/source/anet/CMakeFiles/tcpServer.dir

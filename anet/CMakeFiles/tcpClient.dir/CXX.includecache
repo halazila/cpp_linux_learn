@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/xiongbaohua/source/anet/anet.h
+sys/types.h
+-
+
+/home/xiongbaohua/source/anet/tcpClient.cpp
+iostream
+-
+thread
+-
+unistd.h
+-
+vector
+-
+stdlib.h
+-
+string.h
+-
+anet.h
+/home/xiongbaohua/source/anet/anet.h
+
