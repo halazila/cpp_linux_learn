@@ -8,35 +8,25 @@
 class ClientConn
 {
 public:
-    uv_tcp_t tcpHandle;     //tcp handle
-    uv_idle_t idleHandle;   //idle handle
-    uv_timer_t timerHandle; //timer handle
-    std::string clientKey;  //格式，IPv4_addr:port，作为唯一连接标志
-    int unreplyHeartbeat;   //未回复的心跳包个数
-    int readBytes;          //已接收字节数
-    // int pkgSize;                       //包大小
-    int filesCapacity;                 //可同步的最大文件数
-    int filesCount;                    //需要同步的文件数
-    std::vector<FileInfo> uploadFiles; //需要同步的文件列表
-    BytesLinkedBuf *readBuf;           //已接收数据缓存
-    std::vector<PkgStruct> prsPkgs;    //解析的通信包
-    PkgHead headCached;                //上一次解析的包头缓存
-    bool bHeadCached;                  //是否有缓存包头
-    bool bLogin;                       //是否登录
-    bool bReadUpd;                     //是否读取新数据
+    uv_tcp_t tcpHandle;          //tcp handle
+    uv_idle_t idleHandle;        //idle handle
+    uv_timer_t timerHandle;      //timer handle
+    std::string clientKey;       //格式，IPv4_addr:port，作为唯一连接标志
+    int unreplyHeartbeat;        //未回复的心跳包个数
+    BytesLinkedBuf *readBuf;     //原始接收数据缓存，用于在idle-handle callback 做包解析
+    RecvStatusField recvStatus;  //当前接收状态，用于包解析
+    CommondStructField cmdField; //当前接收的命令，用于命令处理
+    bool bLogin;                 //是否登录
+    int fd;                      //关联文件描述符
 
 public:
     ClientConn()
     {
-        filesCapacity = DEFAULT_FILE_CAP;
-        uploadFiles.reserve(filesCapacity);
         tcpHandle.data = idleHandle.data = timerHandle.data = this;
         unreplyHeartbeat = 0;
-        readBytes = 0;
-        filesCount = 0;
-        bReadUpd = false;
         readBuf = nullptr;
-        bLogin = bHeadCached = bReadUpd = false;
+        bLogin = false;
+        fd = -1;
     }
     ~ClientConn()
     {
@@ -51,8 +41,8 @@ public:
     void closeHandle();
     //缓存收到的字节
     void appendRecvBytes(const char *pChr, const int len);
-    //return -1,失败，其他；解析的通信包数目
-    int parsePackage();
+    //return -1-失败; 0-无可解析数据; 1-只解析部分数据; 2-解析到完整包
+    int packageHandle();
 };
 
 //服务端
@@ -74,12 +64,19 @@ public:
     static void delInstance();
 
 private:
+    //tcp-handle connect callback
     static void connection_cb(uv_stream_t *server, int status);
+    //tcp-handle read allocation callback
     static void alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf);
+    //tcp-handle read callback
     static void read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
+    //tcp-handle write callback
     static void write_cb(uv_write_t *req, int status);
-    static void timer_cb(uv_timer_t *timer);
+    //tcp-handle shutdown callback
     static void shutdown_cb(uv_shutdown_t *req, int status);
+    //timer-handle countdown callback
+    static void timer_cb(uv_timer_t *timer);
+    //idle-handle callback
     static void idle_cb(uv_idle_t *handle);
     int getClientKey(uv_tcp_t *client, std::string &strKey);
 

@@ -38,14 +38,99 @@ void ClientConn::appendRecvBytes(const char *pChr, const int len)
     {
         readBuf = newBuf;
     }
-    readBytes += len;
-    bReadUpd = true;
 }
-//return -1,失败，其他；解析的通信包数目
-int ClientConn::parsePackage()
+
+//return -1-失败; 0-无可解析数据; 1-只解析部分数据; 2-解析到完整包
+int ClientConn::packageHandle()
 {
-    int nRet = 0;
-   
+    int nRet = PARSE_PACKAGE_NONE;
+    BytesLinkedBuf *pbuf = readBuf;
+    while (nullptr != pbuf)
+    {
+        //纯文件包不包含包头
+        if (recvStatus.recvMode == RecvModeEnum::MODE_RECV_FILE)
+        {
+            nRet = PARSE_PACKAGE_OK;
+            memcpy(cmdField.cmdData, pbuf->byteBuffer, pbuf->usedSize);
+            pbuf = pbuf->ptrNext;
+            readBuf->Realse();
+            readBuf = pbuf;
+            break;
+        }
+        //普通包接收
+        if (pbuf->usedSize >= recvStatus.remainSize)
+        {
+            memcpy(&recvStatus.recvdData[recvStatus.recvdSize], &pbuf->byteBuffer[pbuf->startPos], recvStatus.remainSize);
+            pbuf->startPos += recvStatus.remainSize;
+            pbuf->usedSize -= recvStatus.remainSize;
+            //清除已解析完的原始接收数据缓存
+            if (pbuf->usedSize == 0)
+            {
+                pbuf = pbuf->ptrNext;
+                readBuf->Realse();
+                delete readBuf;
+                readBuf = pbuf;
+            }
+
+            if (recvStatus.recvMode == RecvModeEnum::MODE_RECV_NONE)
+            {
+                nRet = PARSE_PACKAGE_PART;
+                PkgHeadField pkgHead;
+                memcpy(&pkgHead, recvStatus.recvdData, sizeof(pkgHead));
+                //校验协议头
+                if (strcmp(pkgHead.pkgProto, PKG_PROTOCOL_IDENTITY) != 0)
+                {
+                    nRet = PARSE_PACKAGE_ERR;
+                    break;
+                }
+                cmdField.cmdTYpe = pkgHead.pkgID; //cmd type
+                cmdField.bLast = pkgHead.pkgSerialID == pkgHead.pkgNums - 1;
+
+                recvStatus.recvMode = RecvModeEnum::MODE_RECV_HEAD;
+                //包体无数据，解析完成
+                if (pkgHead.pkgBodyLen < 1)
+                {
+                    recvStatus.ResetStatus();
+                    nRet = PARSE_PACKAGE_OK;
+                    break;
+                }
+                else
+                {
+                    recvStatus.recvdSize = 0;
+                    recvStatus.remainSize = pkgHead.pkgBodyLen;
+                }
+            }
+            else
+            {
+                recvStatus.ResetStatus();
+                nRet = PARSE_PACKAGE_OK;
+                memcpy(cmdField.cmdData, recvStatus.recvdData, recvStatus.recvdSize);
+                if (cmdField.cmdTYpe == CmdTypeEnum::PKG_READFILE)
+                {
+                    recvStatus.recvMode = RecvModeEnum::MODE_READ_FILE;
+                }
+                else if (cmdField.cmdTYpe == CmdTypeEnum::PKG_RECVFILE)
+                {
+                    recvStatus.recvMode = RecvModeEnum::MODE_RECV_FILE;
+                }
+                else
+                {
+                    recvStatus.recvMode = RecvModeEnum::MODE_RECV_BODY;
+                }
+                break;
+            }
+        }
+        else
+        {
+            memcpy(&recvStatus.recvdData[recvStatus.recvdSize], &pbuf->byteBuffer[pbuf->startPos], pbuf->usedSize);
+            recvStatus.recvdSize += pbuf->usedSize;
+            recvStatus.remainSize -= pbuf->usedSize;
+            pbuf = pbuf->ptrNext;
+            readBuf->Realse();
+            delete readBuf;
+            readBuf = pbuf;
+        }
+    }
 
     return nRet;
 }
@@ -121,10 +206,17 @@ void DispatchServer::connection_cb(uv_stream_t *server, int status)
 
 void DispatchServer::alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf)
 {
-    // ClientConn *conn = (ClientConn *)handle->data;
-    buf->len = size;
+    ClientConn *conn = (ClientConn *)handle->data;
+    if (conn->recvStatus.recvMode == RecvModeEnum::MODE_RECV_FILE) //接收纯文件数据包(发送方调用sendfile)
+    {
+        buf->len = PKG_DEFAULT_LENGTH;
+    }
+    else
+    {
+        buf->len = conn->recvStatus.remainSize;
+    }
     buf->base = new char[buf->len];
-    memset(buf->base, 0, size);
+    memset(buf->base, 0, buf->len);
 }
 
 void DispatchServer::read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
@@ -169,18 +261,25 @@ void DispatchServer::shutdown_cb(uv_shutdown_t *req, int status)
     delete req;
 }
 
-//解析所有缓存的数据
+//解析上次读缓存的数据
 void DispatchServer::idle_cb(uv_idle_t *handle)
 {
     ClientConn *conn = (ClientConn *)handle->data;
     DispatchServer *pServer = getInstance();
-    if (conn->parsePackage() == PARSE_PACKAGE_ERR)
+    int nPrsRet = conn->packageHandle();
+    if (nPrsRet == PARSE_PACKAGE_ERR)
     {
         conn->closeHandle();
         return;
     }
-    pServer->commandProcess(conn);
-    uv_idle_stop(handle);
+    else if (nPrsRet == PARSE_PACKAGE_NONE)
+    {
+        uv_idle_stop(handle);
+    }
+    else if (nPrsRet == PARSE_PACKAGE_OK)
+    {
+        pServer->commandProcess(conn);
+    }
 }
 
 int DispatchServer::getClientKey(uv_tcp_t *client, std::string &strKey)
@@ -238,10 +337,10 @@ int DispatchServer::removeClientConn(ClientConn *conn)
 int DispatchServer::readProcess(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 {
     ClientConn *conn = (ClientConn *)stream->data;
-    conn->appendRecvBytes(buf->base, buf->len);
+    conn->appendRecvBytes(buf->base, nread);
     uv_idle_start(&conn->idleHandle, DispatchServer::idle_cb);
-    delete buf; //buf.base switched to conn
 }
+
 void DispatchServer::commandProcess(ClientConn *conn)
 {
 }
