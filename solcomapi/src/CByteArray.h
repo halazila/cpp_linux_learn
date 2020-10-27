@@ -5,7 +5,7 @@
 ///////////////////////////////////////
 ///类似于滑动窗口数组，提供左/右双指针操作
 ///数据有效区间[nLeft, nRight)，(左闭右开)
-///默认数组长度为1400，支持扩容(手动操作)
+///默认数组长度为1424，支持扩容(手动操作)
 ///指针操作函数内部未做校验，使用时外部校验
 ///////////////////////////////////////
 class CByteArray
@@ -17,9 +17,9 @@ private:
     int nLeft;
 
 public:
-    CByteArray(int nCap = 1400)
+    CByteArray(int nCap = 1424)
     {
-        nCapacity = nCap > 1400 ? nCap : 1400;
+        nCapacity = nCap > 1424 ? nCap : 1424;
         pCharArr = new char[nCapacity];
         nRight = nLeft = 0;
     }

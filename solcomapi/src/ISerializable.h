@@ -5,7 +5,6 @@
 enum ERequestType
 {
     TypeReq_None = 0,
-    TypeReq_Connect,
     TypeReq_Heartbeat,
 };
 
@@ -17,6 +16,7 @@ public:
 public:
     ISerializable() : nType(0) {}
     virtual ~ISerializable() {}
+    //首字节固定设为nType的值
     virtual void Serialize(CByteArray &dstByteArray)
     {
         dstByteArray.Append(nType);
@@ -25,6 +25,7 @@ public:
     {
         srcByteArray.HeadIntercept(nType);
     }
+    //返回一个大于成员变量内存大小的非精确值
     virtual int dataSize()
     {
         //size of non-static data member (member function not included),
