@@ -1,5 +1,6 @@
 #include <functional>
 #include <chrono>
+#include <iostream>
 #include "SolcomApi.h"
 #include "SillyCommand.h"
 
@@ -14,8 +15,22 @@ SolcomSpi::~SolcomSpi()
 
 void SolcomSpi::OnRecvMsg(ISerializable *recvMsg)
 {
+    switch (recvMsg->nType)
+    {
+    case ERequestType::TypeReq_Heartbeat:
+        std::cout << "Receive heart beat" << std::endl;
+        break;
+    case ERequestType::TypeReq_TestCmd:
+        ((TestCommand *)recvMsg)->Print();
+        break;
+    /**other command types**/
+    default:
+        break;
+    }
 }
-
+void SolcomSpi::OnRspMsg(ISerializable *recvMsg, int requestID)
+{
+}
 void SolcomSpi::OnDisconnect()
 {
 }
@@ -49,39 +64,12 @@ SolcomApi::SolcomApi(/* args */)
 //析构函数
 SolcomApi::~SolcomApi()
 {
+    Join();
 }
 //注册回调
 void SolcomApi::RegistSpi(SolcomSpi *spi)
 {
     solcomSpi = spi;
-}
-//发送消息
-int SolcomApi::PostMsg(ISerializable &msg)
-{
-    if (!bConnected)
-        return ERR_NETWORK;
-    CByteArray *pByteArr = sendCache.allocate();
-    if (pByteArr)
-    {
-        pByteArr->Init();
-        if (pByteArr->Capacity() < msg.dataSize() + PackageHeadLen)
-            pByteArr->Reallocate(msg.dataSize() + PackageHeadLen);
-        PackageHeadField pkghead;
-        memset(&pkghead, 0, sizeof(pkghead));
-        pkghead.repeatTimes = 0;
-        pkghead.reqAckType = EPkgReqAckType::Type_Req;
-        pkghead.serialID = serialID++;
-        //encode
-        pByteArr->RightForward(sizeof(pkghead));
-        pByteArr->LeftForward(sizeof(pkghead));
-        pkgCodec.encodeSerializeObj(msg, *pByteArr);
-        pkghead.pkgBodyLen = pByteArr->RightPos() - sizeof(pkghead);
-        pByteArr->Prepend(pkghead);
-        //缓存尾部指针前移
-        sendCache.tailForward();
-        return ERR_SUCCESS;
-    }
-    return ERR_NO_BUFFER;
 }
 //注册服务端地址
 void SolcomApi::RegistServer(char *pAddr, int nPort)
@@ -113,6 +101,16 @@ void SolcomApi::SetAutoReconnect(bool recon)
 {
     bAutoReconn = recon;
 }
+//发送请求
+int SolcomApi::PostRequest(ISerializable &msg, int requestID)
+{
+    return postMsg(msg, requestID, EPkgReqRtnType::Type_Req);
+}
+//推送消息
+int SolcomApi::PushMessage(ISerializable &msg)
+{
+    return postMsg(msg, 0, EPkgReqRtnType::Type_Rtn);
+}
 
 ///******private member functions******///
 int64_t SolcomApi::getNowSeconds()
@@ -131,18 +129,14 @@ void SolcomApi::loopFunction()
         loopStartTime = std::chrono::system_clock::now();
         lastRead = lastWrite = 0;
         uv_run(&loop, UV_RUN_DEFAULT);
-        //close handles
-        uv_close((uv_handle_t *)&tcpHandle, nullptr);
-        uv_close((uv_handle_t *)&idleHandle, nullptr);
-        uv_close((uv_handle_t *)&initTimerHandle, nullptr);
-        uv_close((uv_handle_t *)&recnTimerHandle, nullptr);
     }
 }
 //关闭连接
 void SolcomApi::closeConnection()
 {
+    if (bConnected)
+        uv_close((uv_handle_t *)&tcpHandle, nullptr);
     bConnected = false;
-    uv_close((uv_handle_t *)&tcpHandle, nullptr);
     if (solcomSpi)
         solcomSpi->OnDisconnect();
 }
@@ -165,7 +159,7 @@ void SolcomApi::connectServer()
 void SolcomApi::sendHeartbeat()
 {
     HeartbeatCommand hbtCom;
-    PostMsg(hbtCom);
+    postMsg(hbtCom);
 }
 //发送应答
 void SolcomApi::sendAck(PackageHeadField &pkgHead)
@@ -179,13 +173,39 @@ void SolcomApi::reqHandle(CByteArray &inStream)
 {
     if (solcomSpi)
     {
-        char *pchr = inStream.CharArray();
+        char *pchr = inStream.CharArray() + inStream.LeftPos();
         uint8_t objType = pchr[0];
         ISerializable *pCmdObj = serializeObjCache.GetCachedObj((ERequestType)objType);
         //反序列化
         pkgCodec.decodeSerializeObj(*pCmdObj, inStream);
         solcomSpi->OnRecvMsg(pCmdObj);
     }
+}
+int SolcomApi::postMsg(ISerializable &msg, int requestID, EPkgReqRtnType reqRtn)
+{
+    if (!bConnected)
+        return ERR_NETWORK;
+    CByteArray *pByteArr = sendCache.allocate();
+    if (pByteArr)
+    {
+        pByteArr->Init();
+        if (pByteArr->Capacity() < msg.dataSize() + PackageHeadLen)
+            pByteArr->Reallocate(msg.dataSize() + PackageHeadLen);
+        PackageHeadField pkghead;
+        memset(&pkghead, 0, sizeof(pkghead));
+        pkghead.reqRtnType = reqRtn;
+        pkghead.requestID = requestID;
+        //encode
+        pByteArr->RightForward(sizeof(pkghead));
+        pByteArr->LeftForward(sizeof(pkghead));
+        pkgCodec.encodeSerializeObj(msg, *pByteArr);
+        pkghead.pkgBodyLen = pByteArr->RightPos() - sizeof(pkghead);
+        pByteArr->Prepend(pkghead);
+        //缓存尾部指针前移
+        sendCache.tailForward();
+        return ERR_SUCCESS;
+    }
+    return ERR_NO_BUFFER;
 }
 //连接回调
 void SolcomApi::connect_cb(uv_connect_t *server, int status)
@@ -230,62 +250,30 @@ void SolcomApi::read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
         pSolcom->recvBuffer.RightForward(nread);
         if (nread == pSolcom->nNeedRead) //接收到完整数据
         {
+            PackageHeadField pkghead = pSolcom->pkgCodec.decodeHead(pSolcom->recvBuffer);
             if (pSolcom->recvStat == ERecvStatType::Type_RecvHead) //接收到完整的包头
             {
-                PackageHeadField pkghead = pSolcom->pkgCodec.decodeHead(pSolcom->recvBuffer);
-                if (pkghead.reqAckType == EPkgReqAckType::Type_Ack) //应答包(Ack)
-                {
-                    while (1)
-                    {
-                        //清除发送队列对应的缓存
-                        CByteArray *pByteArr = pSolcom->sendCache.front();
-                        if (nullptr != pByteArr)
-                        {
-                            PackageHeadField tmphead = pSolcom->pkgCodec.decodeHead(*pByteArr);
-                            pSolcom->sendCache.headForward();
-                            if (tmphead.serialID == pkghead.serialID) //缓存请求包的序列号等于应答序列号
-                            {
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                    //接收缓存状态初始化
-                    pSolcom->recvBuffer.Init();
-                }
-                else //请求包(Req)
-                {
-                    //设置下次读取最大长度
-                    pSolcom->nNeedRead = pkghead.pkgBodyLen;
-                    pSolcom->recvStat = ERecvStatType::Type_RecvBody;
-                    //左指针归零
-                    pSolcom->recvBuffer.LeftBackward(PackageHeadLen);
-                    if (pSolcom->recvBuffer.Capacity() < pSolcom->nNeedRead + PackageHeadLen)
-                        pSolcom->recvBuffer.Reallocate(pSolcom->nNeedRead + PackageHeadLen);
-                }
+                //设置下次读取最大长度
+                pSolcom->nNeedRead = pkghead.pkgBodyLen;
+                pSolcom->recvStat = ERecvStatType::Type_RecvBody;
+                //左指针归零
+                pSolcom->recvBuffer.LeftBackward(PackageHeadLen);
+                if (pSolcom->recvBuffer.Capacity() < pSolcom->nNeedRead + PackageHeadLen)
+                    pSolcom->recvBuffer.Reallocate(pSolcom->nNeedRead + PackageHeadLen);
             }
             else //接收到完整的包体
             {
-                //发送应答Ack
-                //Ack使用独立缓存，防止外部请求将缓存队列占满，发送Ack失败，对方无法及时释放发送队列缓存
-                //未及时发出的Ack可被后续包的Ack直接覆盖
-                PackageHeadField pkghead = pSolcom->pkgCodec.decodeHead(pSolcom->recvBuffer);
-                pkghead.pkgBodyLen = 0;
-                pkghead.reqAckType = EPkgReqAckType::Type_Ack;
-                pSolcom->sendAck(pkghead);
                 //spi回调
                 pSolcom->reqHandle(pSolcom->recvBuffer);
                 //接收缓存状态初始化
                 pSolcom->recvBuffer.Init();
                 //接收状态改变
                 pSolcom->recvStat = ERecvStatType::Type_RecvHead;
+                pSolcom->nNeedRead = PackageHeadLen;
             }
         }
-        else
-        { //接收到不完整数据
+        else //接收到不完整数据
+        {
             pSolcom->nNeedRead -= nread;
         }
     }
@@ -320,29 +308,8 @@ void SolcomApi::req_write_cb(uv_write_t *req, int status)
     }
     else
     {
-        pSolcom->sendCache.currentForward();
+        pSolcom->sendCache.headForward();
         pSolcom->bReqWritereqBusy = false;
-    }
-    //更新上次写成功时间
-    pSolcom->lastWrite = pSolcom->getNowSeconds();
-}
-//Ack写回调
-void SolcomApi::ack_write_cb(uv_write_t *req, int status)
-{
-    SolcomApi *pSolcom = (SolcomApi *)req->data;
-    if (status < 0)
-    {
-        //Error
-        fprintf(stderr, "Req Write error: %s.\n", uv_strerror(status));
-        pSolcom->closeConnection();
-        if (pSolcom->bAutoReconn && !pSolcom->bStop)
-            uv_timer_start(&pSolcom->recnTimerHandle, &SolcomApi::reconn_timer_cb, pSolcom->nMsReconInterval, 0);
-        return;
-    }
-    else
-    {
-        pSolcom->ackBuffer.second = false;
-        pSolcom->ackBuffer.first.Init();
     }
     //更新上次写成功时间
     pSolcom->lastWrite = pSolcom->getNowSeconds();
@@ -354,6 +321,9 @@ void SolcomApi::reconn_timer_cb(uv_timer_t *timer)
     //只处理重连
     if (!pSolcom->bConnected)
     {
+        //tcp handle must be init with loop
+        uv_tcp_init(&pSolcom->loop, &pSolcom->tcpHandle);
+        pSolcom->tcpHandle.data = pSolcom;
         pSolcom->connectServer();
     }
 }
@@ -387,46 +357,33 @@ void SolcomApi::idle_cb(uv_idle_t *handle)
                 }
             }
         }
-        //write ack
-        if (pSolcom->ackBuffer.second)
+        if (!pSolcom->bStop)
         {
-            bIdleStop = false;
-            if (!pSolcom->bAckWritereqBusy)
+            int64_t tnow = pSolcom->getNowSeconds();
+            //keep-alive检测
+            int64_t writeInterval = tnow - pSolcom->lastWrite;
+            if (writeInterval > MAX_WRITE_IDLE_INTERVAL)
             {
-                CByteArray *byteArr = &pSolcom->ackBuffer.first;
-                pSolcom->ack_uvbuf = uv_buf_init(byteArr->CharArray(), byteArr->RightPos());
-                uv_write(&pSolcom->ack_writereq, (uv_stream_t *)&pSolcom->tcpHandle, &pSolcom->ack_uvbuf, 1, &SolcomApi::ack_write_cb);
+                //客户端主动发送心跳，心跳无论发送成功与否都更新lastWrite
+                pSolcom->sendHeartbeat();
+                pSolcom->lastWrite = tnow;
+            }
+            //重连检测
+            int64_t readInterval = tnow - pSolcom->lastWrite;
+            if (readInterval > MAX_IDLE_INTERVAL)
+            {
+                //重连
+                pSolcom->closeConnection();
+                if (pSolcom->bAutoReconn && !pSolcom->bStop)
+                    pSolcom->connectServer();
             }
         }
-
-        if (pSolcom->bStop && bIdleStop)
-        {
-            uv_idle_stop(handle);
-        }
-
-        int64_t tnow = pSolcom->getNowSeconds();
-        //keep-alive检测
-        int64_t writeInterval = tnow - pSolcom->lastWrite;
-        if (writeInterval > MAX_WRITE_IDLE_INTERVAL)
-        {
-            //客户端主动发送心跳，心跳无论发送成功与否都更新lastWrite
-            pSolcom->sendHeartbeat();
-            pSolcom->lastWrite = tnow;
-        }
-        //重连检测
-        int64_t readInterval = tnow - pSolcom->lastWrite;
-        if (readInterval > MAX_READ_IDLE_INTERVAL)
-        {
-            //重连
-            pSolcom->closeConnection();
-            if (pSolcom->bAutoReconn && !pSolcom->bStop)
-                pSolcom->connectServer();
-        }
     }
-    else
+
+    //停止idle
+    if (pSolcom->bStop && bIdleStop)
     {
-        //停止idle
-        if (pSolcom->bStop && bIdleStop)
-            uv_idle_stop(handle);
+        uv_idle_stop(handle);
+        pSolcom->closeConnection();
     }
 }

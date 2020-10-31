@@ -1,3 +1,4 @@
 /home/xiongbaohua/source/solcomapi/CMakeFiles/rebuild_cache.dir
 /home/xiongbaohua/source/solcomapi/CMakeFiles/edit_cache.dir
-/home/xiongbaohua/source/solcomapi/CMakeFiles/solclient.dir
+/home/xiongbaohua/source/solcomapi/CMakeFiles/server.dir
+/home/xiongbaohua/source/solcomapi/CMakeFiles/client.dir

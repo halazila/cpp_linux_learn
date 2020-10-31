@@ -111,17 +111,144 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named solclient
+# Target rules for targets named server
 
 # Build rule for target.
-solclient: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 solclient
-.PHONY : solclient
+server: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 server
+.PHONY : server
 
 # fast build rule for target.
-solclient/fast:
-	$(MAKE) -f CMakeFiles/solclient.dir/build.make CMakeFiles/solclient.dir/build
-.PHONY : solclient/fast
+server/fast:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/build
+.PHONY : server/fast
+
+#=============================================================================
+# Target rules for targets named client
+
+# Build rule for target.
+client: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 client
+.PHONY : client
+
+# fast build rule for target.
+client/fast:
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/build
+.PHONY : client/fast
+
+src/ClientTest.o: src/ClientTest.cpp.o
+
+.PHONY : src/ClientTest.o
+
+# target to build an object file
+src/ClientTest.cpp.o:
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/src/ClientTest.cpp.o
+.PHONY : src/ClientTest.cpp.o
+
+src/ClientTest.i: src/ClientTest.cpp.i
+
+.PHONY : src/ClientTest.i
+
+# target to preprocess a source file
+src/ClientTest.cpp.i:
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/src/ClientTest.cpp.i
+.PHONY : src/ClientTest.cpp.i
+
+src/ClientTest.s: src/ClientTest.cpp.s
+
+.PHONY : src/ClientTest.s
+
+# target to generate assembly for a file
+src/ClientTest.cpp.s:
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/src/ClientTest.cpp.s
+.PHONY : src/ClientTest.cpp.s
+
+src/ServerTest.o: src/ServerTest.cpp.o
+
+.PHONY : src/ServerTest.o
+
+# target to build an object file
+src/ServerTest.cpp.o:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/ServerTest.cpp.o
+.PHONY : src/ServerTest.cpp.o
+
+src/ServerTest.i: src/ServerTest.cpp.i
+
+.PHONY : src/ServerTest.i
+
+# target to preprocess a source file
+src/ServerTest.cpp.i:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/ServerTest.cpp.i
+.PHONY : src/ServerTest.cpp.i
+
+src/ServerTest.s: src/ServerTest.cpp.s
+
+.PHONY : src/ServerTest.s
+
+# target to generate assembly for a file
+src/ServerTest.cpp.s:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/ServerTest.cpp.s
+.PHONY : src/ServerTest.cpp.s
+
+src/SolConnClient.o: src/SolConnClient.cpp.o
+
+.PHONY : src/SolConnClient.o
+
+# target to build an object file
+src/SolConnClient.cpp.o:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/SolConnClient.cpp.o
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/src/SolConnClient.cpp.o
+.PHONY : src/SolConnClient.cpp.o
+
+src/SolConnClient.i: src/SolConnClient.cpp.i
+
+.PHONY : src/SolConnClient.i
+
+# target to preprocess a source file
+src/SolConnClient.cpp.i:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/SolConnClient.cpp.i
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/src/SolConnClient.cpp.i
+.PHONY : src/SolConnClient.cpp.i
+
+src/SolConnClient.s: src/SolConnClient.cpp.s
+
+.PHONY : src/SolConnClient.s
+
+# target to generate assembly for a file
+src/SolConnClient.cpp.s:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/SolConnClient.cpp.s
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/src/SolConnClient.cpp.s
+.PHONY : src/SolConnClient.cpp.s
+
+src/SolConnServer.o: src/SolConnServer.cpp.o
+
+.PHONY : src/SolConnServer.o
+
+# target to build an object file
+src/SolConnServer.cpp.o:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/SolConnServer.cpp.o
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/src/SolConnServer.cpp.o
+.PHONY : src/SolConnServer.cpp.o
+
+src/SolConnServer.i: src/SolConnServer.cpp.i
+
+.PHONY : src/SolConnServer.i
+
+# target to preprocess a source file
+src/SolConnServer.cpp.i:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/SolConnServer.cpp.i
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/src/SolConnServer.cpp.i
+.PHONY : src/SolConnServer.cpp.i
+
+src/SolConnServer.s: src/SolConnServer.cpp.s
+
+.PHONY : src/SolConnServer.s
+
+# target to generate assembly for a file
+src/SolConnServer.cpp.s:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/SolConnServer.cpp.s
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/src/SolConnServer.cpp.s
+.PHONY : src/SolConnServer.cpp.s
 
 src/SolcomApi.o: src/SolcomApi.cpp.o
 
@@ -129,7 +256,8 @@ src/SolcomApi.o: src/SolcomApi.cpp.o
 
 # target to build an object file
 src/SolcomApi.cpp.o:
-	$(MAKE) -f CMakeFiles/solclient.dir/build.make CMakeFiles/solclient.dir/src/SolcomApi.cpp.o
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/SolcomApi.cpp.o
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/src/SolcomApi.cpp.o
 .PHONY : src/SolcomApi.cpp.o
 
 src/SolcomApi.i: src/SolcomApi.cpp.i
@@ -138,7 +266,8 @@ src/SolcomApi.i: src/SolcomApi.cpp.i
 
 # target to preprocess a source file
 src/SolcomApi.cpp.i:
-	$(MAKE) -f CMakeFiles/solclient.dir/build.make CMakeFiles/solclient.dir/src/SolcomApi.cpp.i
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/SolcomApi.cpp.i
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/src/SolcomApi.cpp.i
 .PHONY : src/SolcomApi.cpp.i
 
 src/SolcomApi.s: src/SolcomApi.cpp.s
@@ -147,7 +276,8 @@ src/SolcomApi.s: src/SolcomApi.cpp.s
 
 # target to generate assembly for a file
 src/SolcomApi.cpp.s:
-	$(MAKE) -f CMakeFiles/solclient.dir/build.make CMakeFiles/solclient.dir/src/SolcomApi.cpp.s
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/SolcomApi.cpp.s
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/src/SolcomApi.cpp.s
 .PHONY : src/SolcomApi.cpp.s
 
 # Help Target
@@ -158,7 +288,20 @@ help:
 	@echo "... depend"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... solclient"
+	@echo "... server"
+	@echo "... client"
+	@echo "... src/ClientTest.o"
+	@echo "... src/ClientTest.i"
+	@echo "... src/ClientTest.s"
+	@echo "... src/ServerTest.o"
+	@echo "... src/ServerTest.i"
+	@echo "... src/ServerTest.s"
+	@echo "... src/SolConnClient.o"
+	@echo "... src/SolConnClient.i"
+	@echo "... src/SolConnClient.s"
+	@echo "... src/SolConnServer.o"
+	@echo "... src/SolConnServer.i"
+	@echo "... src/SolConnServer.s"
 	@echo "... src/SolcomApi.o"
 	@echo "... src/SolcomApi.i"
 	@echo "... src/SolcomApi.s"

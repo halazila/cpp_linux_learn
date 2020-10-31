@@ -53,7 +53,8 @@ CMAKE_BINARY_DIR = /home/xiongbaohua/source/solcomapi
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/solclient.dir/all
+all: CMakeFiles/server.dir/all
+all: CMakeFiles/client.dir/all
 
 .PHONY : all
 
@@ -63,36 +64,64 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/solclient.dir/clean
+clean: CMakeFiles/server.dir/clean
+clean: CMakeFiles/client.dir/clean
 
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/solclient.dir
+# Target rules for target CMakeFiles/server.dir
 
 # All Build rule for target.
-CMakeFiles/solclient.dir/all:
-	$(MAKE) -f CMakeFiles/solclient.dir/build.make CMakeFiles/solclient.dir/depend
-	$(MAKE) -f CMakeFiles/solclient.dir/build.make CMakeFiles/solclient.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/xiongbaohua/source/solcomapi/CMakeFiles --progress-num=1,2 "Built target solclient"
-.PHONY : CMakeFiles/solclient.dir/all
+CMakeFiles/server.dir/all:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/depend
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/xiongbaohua/source/solcomapi/CMakeFiles --progress-num=6,7,8,9,10 "Built target server"
+.PHONY : CMakeFiles/server.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/solclient.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/xiongbaohua/source/solcomapi/CMakeFiles 2
-	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/solclient.dir/all
+CMakeFiles/server.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/xiongbaohua/source/solcomapi/CMakeFiles 5
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/server.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/xiongbaohua/source/solcomapi/CMakeFiles 0
-.PHONY : CMakeFiles/solclient.dir/rule
+.PHONY : CMakeFiles/server.dir/rule
 
 # Convenience name for target.
-solclient: CMakeFiles/solclient.dir/rule
+server: CMakeFiles/server.dir/rule
 
-.PHONY : solclient
+.PHONY : server
 
 # clean rule for target.
-CMakeFiles/solclient.dir/clean:
-	$(MAKE) -f CMakeFiles/solclient.dir/build.make CMakeFiles/solclient.dir/clean
-.PHONY : CMakeFiles/solclient.dir/clean
+CMakeFiles/server.dir/clean:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/clean
+.PHONY : CMakeFiles/server.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/client.dir
+
+# All Build rule for target.
+CMakeFiles/client.dir/all:
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/depend
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/xiongbaohua/source/solcomapi/CMakeFiles --progress-num=1,2,3,4,5 "Built target client"
+.PHONY : CMakeFiles/client.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/client.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/xiongbaohua/source/solcomapi/CMakeFiles 5
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/client.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/xiongbaohua/source/solcomapi/CMakeFiles 0
+.PHONY : CMakeFiles/client.dir/rule
+
+# Convenience name for target.
+client: CMakeFiles/client.dir/rule
+
+.PHONY : client
+
+# clean rule for target.
+CMakeFiles/client.dir/clean:
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/clean
+.PHONY : CMakeFiles/client.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

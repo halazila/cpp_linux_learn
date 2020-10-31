@@ -11,9 +11,6 @@
 #define ERR_NETWORK -1
 #define ERR_NO_BUFFER -2
 
-#define MAX_WRITE_IDLE_INTERVAL 10
-#define MAX_READ_IDLE_INTERVAL 100
-
 class SolcomSpi
 {
 private:
@@ -22,6 +19,7 @@ public:
     SolcomSpi(/* args */);
     virtual ~SolcomSpi();
     virtual void OnRecvMsg(ISerializable *recvMsg);
+    virtual void OnRspMsg(ISerializable *recvMsg, int requestID);
     virtual void OnDisconnect();
     virtual void OnConnect();
 };
@@ -52,7 +50,7 @@ private:
     //接收状态
     ERecvStatType recvStat = ERecvStatType::Type_RecvHead;
     //下次需要接收字节数
-    int nNeedRead = 0;
+    int nNeedRead = PackageHeadLen;
     //上次读成功时间
     int64_t lastRead;
     //上次写成功时间
@@ -90,8 +88,7 @@ public:
     ~SolcomApi();
     //注册回调
     void RegistSpi(SolcomSpi *spi);
-    //发送消息
-    int PostMsg(ISerializable &msg);
+
     //注册服务端地址
     void RegistServer(char *pAddr, int nPort);
     //等待通信线程返回
@@ -102,11 +99,15 @@ public:
     void Stop();
     //是否自动重连
     void SetAutoReconnect(bool recon);
+    //发送请求
+    int PostRequest(ISerializable &msg, int requestID);
+    //推送消息
+    int PushMessage(ISerializable &msg);
 
 private:
     //获取loop开始至今的秒数
     int64_t getNowSeconds();
-    //uvloop 工作线程
+    //uvloop 线程函数
     void loopFunction();
     //关闭连接
     void closeConnection();
@@ -118,6 +119,8 @@ private:
     void sendAck(PackageHeadField &pkgHead);
     //Req响应
     void reqHandle(CByteArray &inStream);
+    //发送消息
+    int postMsg(ISerializable &msg, int requestID = 0, EPkgReqRtnType reqRtn = EPkgReqRtnType::Type_Req);
     //连接回调
     static void connect_cb(uv_connect_t *server, int status);
     //分配空间回调
@@ -127,7 +130,7 @@ private:
     //Req写回调
     static void req_write_cb(uv_write_t *req, int status);
     //Ack写回调
-    static void ack_write_cb(uv_write_t *req, int status);
+    // static void ack_write_cb(uv_write_t *req, int status);
     //重连定时器回调
     static void reconn_timer_cb(uv_timer_t *timer);
     //初始化定时器回调

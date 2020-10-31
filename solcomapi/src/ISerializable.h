@@ -6,6 +6,7 @@ enum ERequestType
 {
     TypeReq_None = 0,
     TypeReq_Heartbeat,
+    TypeReq_TestCmd,
 };
 
 class ISerializable

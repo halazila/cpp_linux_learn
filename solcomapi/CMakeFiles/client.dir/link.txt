@@ -1,0 +1,1 @@
+/usr/bin/c++  -g  -rdynamic CMakeFiles/client.dir/src/SolConnClient.cpp.o CMakeFiles/client.dir/src/SolConnServer.cpp.o CMakeFiles/client.dir/src/SolcomApi.cpp.o CMakeFiles/client.dir/src/ClientTest.cpp.o  -o client  -lpthread -luv 
