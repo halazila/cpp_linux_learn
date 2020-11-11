@@ -1,0 +1,1 @@
+/usr/bin/c++  -g  -rdynamic CMakeFiles/client.dir/ZmqClientEnd.cpp.o CMakeFiles/client.dir/ZmqServerEnd.cpp.o CMakeFiles/client.dir/ClientTest.cpp.o  -o client  -lpthread -lzmq 

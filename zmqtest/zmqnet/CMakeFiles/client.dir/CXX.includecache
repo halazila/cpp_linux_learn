@@ -1,0 +1,24 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/xiongbaohua/source/zmqtest/zmqnet/ZmqServerEnd.cpp
+functional
+-
+iostream
+-
+ZmqServerEnd.h
+/home/xiongbaohua/source/zmqtest/zmqnet/ZmqServerEnd.h
+
+/home/xiongbaohua/source/zmqtest/zmqnet/ZmqServerEnd.h
+zmq.hpp
+/home/xiongbaohua/source/zmqtest/zmqnet/zmq.hpp
+unordered_map
+-
+thread
+-
+
