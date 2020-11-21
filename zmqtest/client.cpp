@@ -32,22 +32,52 @@ int main()
         // std::cout << "recv data: " << recvstr << std::endl;
 
         ///////////////////dealer socket//////////////////
-        zmq_send(requester, "", 0, ZMQ_SNDMORE);
+        int nsend = 0;
+        nsend = zmq_send(requester, "", 0, ZMQ_SNDMORE);
         memset(sendstr, 0, sizeof(sendstr));
         sprintf(sendstr, "Hello_%d", i);
-        zmq_send(requester, sendstr, strlen(sendstr), 0);
+        nsend = zmq_send(requester, sendstr, strlen(sendstr), 0);
         std::cout << "send data: " << sendstr << std::endl;
-        int nrecv;
-        nrecv = zmq_recv(requester, recvstr, 31, 0); //zmq_recv
-        assert(nrecv == 0);
-        nrecv = zmq_recv(requester, recvstr, 31, 0); //zmq_recv
-        if (nrecv > 31)
-        {
-            recvstr[31] = '\0';
-        }
-        // requester.recv(message); //message_t recv
-        // requester.recv(message); //message_t recv
-        // memcpy(recvstr, message.data(), message.size());
+
+        // zmq::pollitem_t items[] = {
+        // {requester, 0, ZMQ_POLLOUT, 0}};
+        // int npoll = zmq::poll(items, 1, 1000);
+        // if (npoll==0)
+        // {
+        //     std::cout<<"zmq::poll timeout"<<std::endl;
+        //     return 0;
+        // }else if(npoll<0)
+        // {
+        //     std::cout<<"zmq::poll error"<<std::endl;
+        //     return -1;
+        // }
+        // items[0] = {requester, 0, ZMQ_POLLIN, 0};
+        // npoll = zmq::poll(items, 1, 1000);
+        // if (npoll==0)
+        // {
+        //     std::cout<<"zmq::poll timeout"<<std::endl;
+        //     return 0;
+        // }else if(npoll<0)
+        // {
+        //     std::cout<<"zmq::poll error"<<std::endl;
+        //     return -1;
+        // }
+
+        ///*******///
+        // int nrecv;
+        // nrecv = zmq_recv(requester, recvstr, 31, 0); //zmq_recv
+        // assert(nrecv == 0);
+        // nrecv = zmq_recv(requester, recvstr, 31, 0); //zmq_recv
+        // if (nrecv > 31)
+        // {
+        //     recvstr[31] = '\0';
+        // }
+        ///*****///
+        requester.recv(message); //message_t recv
+        assert(message.size() == 0);
+        requester.recv(message); //message_t recv
+        memcpy(recvstr, message.data(), message.size());
+        recvstr[message.size()] = '\0';
         std::cout << "recv data: " << recvstr << std::endl;
     }
 
