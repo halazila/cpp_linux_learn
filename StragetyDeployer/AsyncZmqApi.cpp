@@ -1,4 +1,5 @@
 #include "AsyncZmqApi.h"
+#include "CommonStruct.h"
 
 AsyncZmqApi::AsyncZmqApi()
 {
@@ -7,11 +8,8 @@ AsyncZmqApi::AsyncZmqApi()
     //tcp-socket initial
     m_sockTcp = zmq::socket_t(m_ctx, ZMQ_DEALER);
     //thread-socket server
-    m_sockInprocServer = zmq::socket_t(m_ctx, ZMQ_PAIR);
-    m_sockInprocServer.bind("inproc://thread-message");
-    //thread-socket client
-    m_sockInprocClient = zmq::socket_t(m_ctx, ZMQ_PAIR);
-    m_sockInprocClient.connect("inproc://thread-message");
+    m_sockInprocServer = zmq::socket_t(m_ctx, ZMQ_ROUTER);
+    m_sockInprocServer.bind(API_INPROC_BIND_ADDRESS);
     //monitor initialization
     m_monitConnect.init(m_sockTcp, "inproc://monitor-tcpclient", ZMQ_EVENT_CONNECTED | ZMQ_EVENT_DISCONNECTED);
 }
@@ -39,13 +37,6 @@ int AsyncZmqApi::Connect()
     return ASYNCZMQAPI_OK;
 }
 
-void AsyncZmqApi::Stop()
-{
-    m_bStop = true;
-    if (m_thdPoll.joinable())
-        m_thdPoll.join();
-}
-
 void AsyncZmqApi::Start()
 {
     m_bStop = false;
@@ -55,9 +46,26 @@ void AsyncZmqApi::Start()
     }
 }
 
-int AsyncZmqApi::Send(char *data, int len, bool bLast)
+void AsyncZmqApi::Stop()
 {
-    zmq_send(m_sockInprocClient, data, len, bLast ? 0 : ZMQ_SNDMORE);
+    m_bStop = true;
+}
+
+zmq::socket_t AsyncZmqApi::InProcSocket()
+{
+    zmq::socket_t socket(m_ctx, ZMQ_DEALER);
+    socket.connect(API_INPROC_BIND_ADDRESS);
+    return socket;
+}
+
+int AsyncZmqApi::Send(zmq::socket_t &socket, const char *data, int len, bool bLast)
+{
+    int ret = zmq_send(socket, data, len, bLast ? 0 : ZMQ_SNDMORE);
+    if (ret == -1)
+    {
+        return ASYNCZMQAPI_ERROR;
+    }
+    return ASYNCZMQAPI_OK;
 }
 
 void AsyncZmqApi::pollFunc()
@@ -78,6 +86,8 @@ void AsyncZmqApi::pollFunc()
         if (items[0].revents & ZMQ_POLLIN)
         {
             int more;
+            //skip router-id
+            m_sockInprocServer.recv(message);
             while (1)
             {
                 m_sockInprocServer.recv(message);
@@ -91,28 +101,21 @@ void AsyncZmqApi::pollFunc()
         if (items[1].revents & ZMQ_POLLIN)
         {
             int more;
+            auto more_size = sizeof(more);
             while (1)
             {
                 m_sockTcp.recv(message);
-                auto more_size = sizeof(more);
                 m_sockTcp.getsockopt(ZMQ_RCVMORE, &more, &more_size);
                 if (m_funcRecv)
-                    m_funcRecv(message.data(), message.size(), more ? false : true);
+                    m_funcRecv((char *)message.data(), message.size(), more ? false : true);
                 if (!more)
                     break;
             }
         }
     }
+    //disconnect tcp connection
+    m_sockTcp.disconnect(m_strAddr);
+    m_bInitConnect = false;
+
     m_bPolling = false;
-}
-
-void AsyncZmqApi::OnConnected()
-{
-    m_bTcpConnected = true;
-    Send(m_strIdentify.c_str(), m_strIdentify.length());
-}
-
-void AsyncZmqApi::OnDisconnected()
-{
-    m_bTcpConnected = false;
 }

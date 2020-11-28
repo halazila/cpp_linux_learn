@@ -1,5 +1,7 @@
+#pragma once
+
 #pragma pack(push, 4)
-/////数据库表元素类型-begin/////
+/////数据库表元素-begin/////
 //管理用户
 struct ManageUser
 {
@@ -21,7 +23,7 @@ struct StrategyConfig
     char PlatformName[128];
     char StragetyName[128];
     char SrcRootDir[256];
-    int OwnerID;
+    int OwnerID; //ManageUser.ManagerID
 };
 //部署配置
 struct DeployConfig
@@ -32,7 +34,7 @@ struct DeployConfig
     char UserPasswd[64];
     char DstRootDir[256];
     char ExeUser[64];
-    int OwnerID;
+    int OwnerID; //ManageUser.ManagerID
 };
 //部署组
 struct DeployGroup
@@ -40,14 +42,17 @@ struct DeployGroup
     char GroupName[64];
     char StragetyConfig[64];
     char DeployConfig[64];
-    int OwnerID;
+    int OwnerID; //ManageUser.ManagerID
 };
-/////数据库表元素类型-end/////
-//命令类型
-enum EManipulateType : int
+/////数据库表元素-end/////
+//命令类型枚举值
+enum ECommandType : int
 {
-    TConnect,
-    TSelect,
+    TNullCmd = 0,
+    TLogin,
+    TLogout,
+    TKeepAlive,
+    TQuery,
     TInsert,
     TDelete,
     TUpdate,
@@ -55,6 +60,65 @@ enum EManipulateType : int
     TExecute,
     TFinish,
 };
-
+//元数据类型枚举值
+enum EElementType : int
+{
+    TNullType = 0,
+    TManageUser,
+    TServerConfig,
+    TStrategyConfig,
+    TDeployConfig,
+    TDeployGroup,
+};
+//返回消息基类
+struct CommResponse
+{
+    int ErrorID;
+    char ErrMsg[64];
+};
+//请求返回消息，api向服务端请求
+struct ReqResponse : public CommResponse
+{
+    int RequestID;
+    int CmdType;
+};
+//server to client message pattern
+enum STCMsgPattern : int
+{
+    TPassiveResponse, //被动应答
+    TActivePush,      //主动推送
+};
+//ReqResponse.ErrorID 类型
+enum EResponseErrType : int
+{
+    TSuccess,
+    TReplicatedLogin, //重复登录
+    TIdentifyErr,
+    TNoLogin,
+    TDbError,
+    TSshError,
+};
+//消息帧接收状态
+enum EMsgRecvState : int
+{
+    StatInit = 0,
+    StatGetPattern,
+    StatGetCmd,
+    StatGetRsp,
+    StatGetEleType,
+};
 
 #pragma pack(pop)
+//表列筛选条件
+struct ColumnFilter
+{
+    std::string ColName; //列名
+    std::string ColVal;  //列值
+};
+
+////消息帧顺序定义///
+//**client-->server**//
+//managerid->cmd->[requestid->[element type]->element...]
+//**server-->client**//
+//PassiveResponse->Response->[element-type->element...]
+//     ActivePush->cmd-type->[element-type->element...]
