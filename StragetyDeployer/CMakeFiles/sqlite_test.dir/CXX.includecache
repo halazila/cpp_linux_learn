@@ -1,0 +1,30 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/xiongbaohua/source/StragetyDeployer/SQLiteDatabase.h
+string
+-
+map
+-
+vector
+-
+sqlite3.h
+/home/xiongbaohua/source/StragetyDeployer/sqlite3.h
+
+/home/xiongbaohua/source/StragetyDeployer/sqlite3.h
+stdarg.h
+-
+
+/home/xiongbaohua/source/StragetyDeployer/sqlite_test.cpp
+string
+-
+iostream
+-
+SQLiteDatabase.h
+/home/xiongbaohua/source/StragetyDeployer/SQLiteDatabase.h
+

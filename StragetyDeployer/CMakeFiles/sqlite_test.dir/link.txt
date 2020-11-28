@@ -1,0 +1,1 @@
+/usr/bin/c++  -fPIC -g  -rdynamic CMakeFiles/sqlite_test.dir/SQLiteDatabase.cpp.o CMakeFiles/sqlite_test.dir/sqlite_test.cpp.o  -o sqlite_test   -L/home/xiongbaohua/source/StragetyDeployer/.  -Wl,-rpath,/home/xiongbaohua/source/StragetyDeployer/. -lsqlite3 -lpthread -lzmq -ldl 
