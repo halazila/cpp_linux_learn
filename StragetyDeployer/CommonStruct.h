@@ -45,6 +45,19 @@ struct DeployGroup
     int OwnerID; //ManageUser.ManagerID
 };
 /////数据库表元素-end/////
+//返回消息基类
+struct CommResponse
+{
+    int ErrorID;
+    char ErrMsg[64];
+};
+//请求返回消息，api向服务端请求
+struct ReqResponse : public CommResponse
+{
+    int RequestID;
+    int CmdType;
+};
+#pragma pack(pop)
 //命令类型枚举值
 enum ECommandType : int
 {
@@ -63,24 +76,19 @@ enum ECommandType : int
 //元数据类型枚举值
 enum EElementType : int
 {
-    TNullType = 0,
-    TManageUser,
+    TManageUser = 0,
     TServerConfig,
     TStrategyConfig,
     TDeployConfig,
     TDeployGroup,
 };
-//返回消息基类
-struct CommResponse
-{
-    int ErrorID;
-    char ErrMsg[64];
-};
-//请求返回消息，api向服务端请求
-struct ReqResponse : public CommResponse
-{
-    int RequestID;
-    int CmdType;
+//表名映射
+char *AllTableNames[] = {
+    "ManageUser",
+    "ServerConfig",
+    "StrategyConfig",
+    "DeployConfig",
+    "DeployGroup",
 };
 //server to client message pattern
 enum STCMsgPattern : int
@@ -108,7 +116,6 @@ enum EMsgRecvState : int
     StatGetEleType,
 };
 
-#pragma pack(pop)
 //表列筛选条件
 struct ColumnFilter
 {

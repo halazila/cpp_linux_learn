@@ -111,22 +111,22 @@ int SQLiteStatement::executeUpdateDelete()
 
 int SQLiteStatement::bindString(int nIdx, const string &sVal)
 {
-    return sqlite3_bind_text(pstmt, nIdx, sVal.c_str(), sVal.length(), SQLITE_TRANSIENT) == SQLITE_OK ? SQLITEDATABASE_OK : SQLITEDATABASE_ERROR;
+    return sqlite3_bind_text(pstmt, nIdx + 1, sVal.c_str(), sVal.length(), SQLITE_TRANSIENT) == SQLITE_OK ? SQLITEDATABASE_OK : SQLITEDATABASE_ERROR;
 }
 
 int SQLiteStatement::bindDouble(int nIdx, double dVal)
 {
-    return sqlite3_bind_double(pstmt, nIdx, dVal) == SQLITE_OK ? SQLITEDATABASE_OK : SQLITEDATABASE_ERROR;
+    return sqlite3_bind_double(pstmt, nIdx + 1, dVal) == SQLITE_OK ? SQLITEDATABASE_OK : SQLITEDATABASE_ERROR;
 }
 
 int SQLiteStatement::bindInteger(int nIdx, int nVal)
 {
-    return sqlite3_bind_int(pstmt, nIdx, nVal) == SQLITE_OK ? SQLITEDATABASE_OK : SQLITEDATABASE_ERROR;
+    return sqlite3_bind_int(pstmt, nIdx + 1, nVal) == SQLITE_OK ? SQLITEDATABASE_OK : SQLITEDATABASE_ERROR;
 }
 
 int SQLiteStatement::bindLongLong(int nIdx, long long llVal)
 {
-    return sqlite3_bind_int64(pstmt, nIdx, llVal) == SQLITE_OK ? SQLITEDATABASE_OK : SQLITEDATABASE_ERROR;
+    return sqlite3_bind_int64(pstmt, nIdx + 1, llVal) == SQLITE_OK ? SQLITEDATABASE_OK : SQLITEDATABASE_ERROR;
 }
 
 int SQLiteStatement::clearBindings()

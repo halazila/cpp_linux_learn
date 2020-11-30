@@ -44,9 +44,9 @@ int main(int argc, char *argv[])
         char name[32] = {0}, pass[32] = {0};
         sprintf(name, "admin%d", i);
         sprintf(pass, "pass%d", i);
-        stmt.bindInteger(1, i);
+        stmt.bindInteger(0, i);
+        stmt.bindString(1, name);
         stmt.bindString(2, name);
-        stmt.bindString(3, name);
         nres = stmt.executeInsert();
         if (nres < 0)
         {
@@ -102,9 +102,9 @@ int main(int argc, char *argv[])
         char name[32] = {0}, pass[32] = {0};
         sprintf(name, "upd_admin%d", i);
         sprintf(pass, "upd_pass%d", i);
+        stmt.bindString(0, name);
         stmt.bindString(1, name);
-        stmt.bindString(2, name);
-        stmt.bindInteger(3, i);
+        stmt.bindInteger(2, i);
         nres = stmt.executeUpdateDelete();
         if (nres < 0)
         {
@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
     db.beginTransaction();
     for (int i = 2; i < 5; i++)
     {
-        stmt.bindInteger(1, i);
+        stmt.bindInteger(0, i);
         nres = stmt.executeUpdateDelete();
         if (nres < 0)
         {
@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
     }
 
     ////drop table////
-    sql = "drop table TestUser";
+    sql = "drop table TestUser;";
     stmt.release();
     stmt.reCompile(sql);
     nres = stmt.execute();

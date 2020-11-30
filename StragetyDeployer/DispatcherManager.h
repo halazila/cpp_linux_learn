@@ -22,7 +22,7 @@ private:
     STCMsgPattern msgPattern;
     ReqResponse reqRsp;
     int recvCmd = ECommandType::TNullCmd;
-    int recvEleType = EElementType::TNullType;
+    int recvEleType;
     /////////////////////
 public:
     DispatcherManager();
@@ -32,11 +32,11 @@ public:
     void CloseAsyncApi();
     int ReqLogin(const std::string &strid, int nRequestId);
     int ReqLogout(int nRequestId);
-    ///query/delete, qrydel: 0-query, 1-delete
-    int ReqQryDelByColumnFilter(const vector<ColumnFilter> &filterVec, int eleType, int nRequestId, int qrydel);
-    ///insert/update, insupd: 0-insert, 1-update
+    ///query
+    int ReqQryByColumnFilter(const vector<ColumnFilter> &filterVec, int eleType, int nRequestId);
+    ///insert/update/delete, opt: 0-insert, 1-update, 2-delete
     template <class T>
-    int ReqInsUpdByEletype(const vector<T> &eleVec, int eleType, int nRequestId, int insupd)
+    int ReqInsUpdDelByEletype(const vector<T> &eleVec, int eleType, int nRequestId, int opt)
     {
         if (eleVec.size() == 0)
             return ERROR_PARAMETER;
@@ -47,7 +47,21 @@ public:
         zmq::socket_t sock = azmqApi.InProcSocket();
         // managerid->cmd->requestid->eletype->data
         azmqApi.Send(sock, m_strIdentity.c_str(), m_strIdentity.length(), false);
-        int cmd = insupd == 0 ? ECommandType::TInsert : ECommandType::TUpdate;
+        int cmd;
+        switch (opt)
+        {
+        case 0:
+            cmd = ECommandType::TInsert;
+            break;
+        case 1:
+            cmd = ECommandType::TUpdate;
+            break;
+        case 2:
+            cmd = ECommandType::TDelete;
+            break;
+        default:
+            break;
+        }
         azmqApi.Send(sock, (char *)&cmd, sizeof(cmd), false);
         azmqApi.Send(sock, (char *)&requestID, sizeof(int), false);
         azmqApi.Send(sock, (char *)&eleType, sizeof(eleType), false);

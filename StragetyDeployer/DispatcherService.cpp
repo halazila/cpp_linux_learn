@@ -1,5 +1,6 @@
 #include "DispatcherService.h"
 #include "CommonStruct.h"
+#include "dboperatefunc.h"
 
 ///////////////////DispatcherClient//////////////////////
 DispatcherClient::DispatcherClient()
@@ -170,7 +171,7 @@ void DispatcherService::katimeHandle()
     }
 }
 
-void DispatcherService::onRecvCmd(int cmd, shared_ptr<DispatcherClient> &client)
+void DispatcherService::onRecvCmd(int cmd, shared_ptr<DispatcherClient> client)
 {
     zmq::message_t message;
     switch (cmd)
@@ -182,8 +183,54 @@ void DispatcherService::onRecvCmd(int cmd, shared_ptr<DispatcherClient> &client)
         onKeepAlive(client);
         break;
     case ECommandType::TQuery:
-    case ECommandType::TInsert:
+    {
+        int reqid = 0;
+        m_sockBind.recv(message);
+        assert(message.size() == sizeof(int));
+        memcpy(&reqid, (char *)message.data(), sizeof(int));
+        int eletype = 0;
+        m_sockBind.recv(message);
+        assert(message.size() == sizeof(int));
+        memcpy(&eletype, (char *)message.data(), sizeof(int));
+        vector<ColumnFilter> colFilterVec;
+        int more = 0;
+        auto more_size = sizeof(more);
+        m_sockBind.getsockopt(ZMQ_RCVMORE, &more, &more_size);
+        ColumnFilter filter;
+        while (more)
+        {
+            m_sockBind.recv(message);
+            filter.ColName = string((char *)message.data(), message.size());
+            m_sockBind.recv(message);
+            filter.ColVal = string((char *)message.data(), message.size());
+            colFilterVec.push_back(filter);
+        }
+        char ch[64] = {0};
+        sprintf(ch, "select * from %s where 1=1", AllTableNames[eletype]);
+        string sql = ch;
+        for (int i = 0; i < colFilterVec.size(); i++)
+        {
+            memset(ch, 0, sizeof(ch));
+            sprintf(ch, " and %s=%s", colFilterVec[i].ColName.c_str(), colFilterVec[i].ColVal.c_str());
+            sql += ch;
+        }
+        sql += ";";
+        switch (eletype)
+        {
+        case EElementType::TManageUser:
+            threadPool.submit([this, client, strsql = std::move(sql), reqid]() {
+                vector<ManageUser> res = qryManageUserBySql(strsql);
+            });
+            break;
+
+        default:
+            break;
+        }
+    }
+    break;
     case ECommandType::TDelete:
+        break;
+    case ECommandType::TInsert:
     case ECommandType::TUpdate:
     case ECommandType::TDeploy:
     case ECommandType::TExecute:
@@ -195,7 +242,7 @@ void DispatcherService::onRecvCmd(int cmd, shared_ptr<DispatcherClient> &client)
     }
 }
 
-void DispatcherService::onReqLogin(shared_ptr<DispatcherClient> &client)
+void DispatcherService::onReqLogin(shared_ptr<DispatcherClient> client)
 {
     zmq::message_t message;
     //request id
@@ -226,9 +273,39 @@ void DispatcherService::onReqLogin(shared_ptr<DispatcherClient> &client)
     innerSendMsg((const char *)&rsp, sizeof(rsp));
 }
 
-void DispatcherService::onKeepAlive(shared_ptr<DispatcherClient> &client)
+void DispatcherService::onKeepAlive(shared_ptr<DispatcherClient> client)
 {
     client->m_tLastRead = SYSTEM_CLOCK::now();
+}
+
+void DispatcherService::onQryByColumnFilter(shared_ptr<DispatcherClient> client, vector<ColumnFilter> &colFilterVec, char *tableName, int requestId)
+{
+    char ch[64] = {0};
+    sprintf(ch, "select * from %s where 1=1", tableName);
+    string sql = ch;
+    for (int i = 0; i < colFilterVec.size(); i++)
+    {
+        memset(ch, 0, sizeof(ch));
+        sprintf(ch, " and %s=%s", colFilterVec[i].ColName.c_str(), colFilterVec[i].ColVal.c_str());
+        sql += ch;
+    }
+    sql += ";";
+    SQLiteDatabase db(DISPATCHER_DATABASE);
+    db.open();
+    SQLiteStatement stmt = db.compileStatement(sql);
+    db.beginTransaction();
+    SQLiteResultSet result = stmt.executeQuery();
+    while (result.next())
+    {
+        result.getString()
+    }
+
+    db.commitTransaction();
+    db.close();
+}
+
+void DispatcherService::onDelByColumnFilter(shared_ptr<DispatcherClient> client, vector<ColumnFilter> &colFilterVec, char *tableName, int requestId)
+{
 }
 
 bool DispatcherService::identifyUser(const string &strid)

@@ -61,7 +61,7 @@ public:
     //update/delete, return row of effected if success, else -1
     int executeUpdateDelete();
     ////bind parameter, return 0 if success, else -1//
-    ////nIdx starts from 1////////////////////////////
+    ////nIdx starts from 0////////////////////////////
     int bindString(int nIdx, const string &sVal);
     int bindDouble(int nIdx, double dVal);
     int bindInteger(int nIdx, int nVal);

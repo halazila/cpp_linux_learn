@@ -67,7 +67,7 @@ int DispatcherManager::ReqLogout(int nRequestId)
     return ERROR_SUCCESS;
 }
 
-int DispatcherManager::ReqQryDelByColumnFilter(const vector<ColumnFilter> &filterVec, int eleType, int nRequestId, int qrydel)
+int DispatcherManager::ReqQryByColumnFilter(const vector<ColumnFilter> &filterVec, int eleType, int nRequestId)
 {
     if (!azmqApi.IsConnected())
     {
@@ -76,7 +76,7 @@ int DispatcherManager::ReqQryDelByColumnFilter(const vector<ColumnFilter> &filte
     zmq::socket_t sock = azmqApi.InProcSocket();
     // managerid->cmd->requestid->eletype->elements
     azmqApi.Send(sock, m_strIdentity.c_str(), m_strIdentity.length(), false);
-    int cmd = qrydel == 0 ? ECommandType::TQuery : ECommandType::TDelete;
+    int cmd = ECommandType::TQuery;
     azmqApi.Send(sock, (char *)&cmd, sizeof(cmd), false);
     azmqApi.Send(sock, (char *)&nRequestId, sizeof(int), false);
     azmqApi.Send(sock, (char *)&eleType, sizeof(eleType), filterVec.size() == 0);

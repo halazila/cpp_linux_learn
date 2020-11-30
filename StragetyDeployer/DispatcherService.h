@@ -103,9 +103,11 @@ private:
     //外部线程发送
     void outerSendMsg(zmq::socket_t &sndsocket, const char *data, int len, bool bMore = false);
     void katimeHandle();
-    void onRecvCmd(int cmd, shared_ptr<DispatcherClient> &client);
-    void onReqLogin(shared_ptr<DispatcherClient> &client); //bnew-是否新连接
-    void onReqLogout(shared_ptr<DispatcherClient> &client);
-    void onKeepAlive(shared_ptr<DispatcherClient> &client);
+    void onRecvCmd(int cmd, shared_ptr<DispatcherClient> client);
+    void onReqLogin(shared_ptr<DispatcherClient> client);
+    void onReqLogout(shared_ptr<DispatcherClient> client);
+    void onKeepAlive(shared_ptr<DispatcherClient> client);
+
+    
     bool identifyUser(const string &strid);
 };
