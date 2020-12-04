@@ -1,6 +1,5 @@
+#include <iostream>
 #include "DispatcherService.h"
-#include "CommonStruct.h"
-#include "dboperatefunc.h"
 
 ///////////////////DispatcherClient//////////////////////
 DispatcherClient::DispatcherClient()
@@ -14,25 +13,50 @@ DispatcherClient::~DispatcherClient()
 
 //////////////////////DispatcherService//////////////////////
 DispatcherService::DispatcherService(/* args */)
-    : threadPool(4)
+    : threadPool(4), m_ctx(1), m_sockBind(m_ctx, ZMQ_ROUTER), m_sockInprocServer(m_ctx, ZMQ_ROUTER)
 {
+    //设置套接字接收、发送缓存队列，设置为0时表示无限制
+    int hwm = 0;
+    zmq_setsockopt(m_sockBind, ZMQ_RCVHWM, &hwm, sizeof(hwm));
+    zmq_setsockopt(m_sockBind, ZMQ_SNDHWM, &hwm, sizeof(hwm));
+    zmq_setsockopt(m_sockInprocServer, ZMQ_RCVHWM, &hwm, sizeof(hwm));
+    zmq_setsockopt(m_sockInprocServer, ZMQ_SNDHWM, &hwm, sizeof(hwm));
     m_timerKA = Timer(10000);
     m_timerKA.registHandle(bind(&DispatcherService::katimeHandle, this));
-    m_ctx = zmq::context_t(1);
-    m_sockBind = zmq::socket_t(m_ctx, ZMQ_ROUTER);
-    //thread-socket server
-    m_sockInprocServer = zmq::socket_t(m_ctx, ZMQ_ROUTER);
     m_sockInprocServer.bind(INPROC_BIND_ADDRESS);
+    m_bUpdManagerCache.store(true);
 }
 
 DispatcherService::~DispatcherService()
 {
 }
 
+void DispatcherService::updManagerCache()
+{
+    char sql[128] = {0};
+    sprintf(sql, "select * from ManageUser where 1=1");
+    unique_lock<decltype(m_mtxSqlite)> sqliteLock(m_mtxSqlite);
+    vector<ManageUser> vc = qryManageUserBySql(sql);
+    sqliteLock.unlock();
+    m_setManagerCache.clear();
+    cout << "updManagerCache: " << vc.size() << endl;
+    for (size_t i = 0; i < vc.size(); i++)
+    {
+        m_setManagerCache.insert(vc[i].ManagerName);
+    }
+}
+
 void DispatcherService::pollFunc()
 {
     while (1)
     {
+        bool bTrue = true, bFalse = false;
+        //manager-cache update
+        if (m_bUpdManagerCache.compare_exchange_strong(bTrue, false))
+        {
+            updManagerCache();
+        }
+
         //check-timer
         auto tnow = SYSTEM_CLOCK::now();
         if (m_timerKA.timeout(tnow))
@@ -76,6 +100,7 @@ void DispatcherService::pollFunc()
             //cmd
             int cmd;
             m_sockBind.recv(message);
+            memcpy(&cmd, message.data(), sizeof(int));
             //
             int more;
             auto more_size = sizeof(more);
@@ -94,30 +119,67 @@ void DispatcherService::pollFunc()
                 rsp.ErrorID = EResponseErrType::TIdentifyErr;
                 rsp.RequestID = requestid;
                 strcpy(rsp.ErrMsg, "Identify Error");
-                innerSendMsg(strRouter.c_str(), strRouter.length(), true);
+                innerSendMsg((void *)strRouter.c_str(), strRouter.length(), true);
                 int msgType = STCMsgPattern::TPassiveResponse;
-                innerSendMsg((const char *)&msgType, sizeof(msgType), true);
-                innerSendMsg((const char *)&rsp, sizeof(rsp));
+                innerSendMsg(&msgType, sizeof(msgType), true);
+                innerSendMsg(&rsp, sizeof(rsp));
             }
             else
             {
                 //find client
-                auto it = m_mapClients.find(strRouter);
+                auto it = m_mapClients.find(strIdentity);
                 shared_ptr<DispatcherClient> client;
                 if (it == m_mapClients.end())
                 {
-                    client = make_shared<DispatcherClient>(new DispatcherClient);
-                    client->m_strRouter = strRouter;
+                    client.reset(new DispatcherClient);
                     client->m_strIdentify = strIdentity;
+                    //client->m_strRouter = strRouter;
                     m_mapClients[strIdentity] = client;
                 }
                 else
-                {
                     client = it->second;
+                //登录检测
+                if (!client->m_bLogin && cmd != ECommandType::TLogin && cmd != ECommandType::TKeepAlive)
+                {
+                    int reqid{0};
+                    m_sockBind.getsockopt(ZMQ_RCVMORE, &more, &more_size);
+                    if (more)
+                        recvPodObject(message, reqid);
+                    ReqResponse rsp;
+                    rsp.CmdType = cmd;
+                    rsp.ErrorID = EResponseErrType::TNoLogin;
+                    rsp.RequestID = reqid;
+                    strcpy(rsp.ErrMsg, "No-Login Error");
+                    innerSendMsg((void *)strRouter.c_str(), strRouter.length(), true);
+                    int msgType = STCMsgPattern::TPassiveResponse;
+                    innerSendMsg(&msgType, sizeof(msgType), true);
+                    innerSendMsg(&rsp, sizeof(rsp));
+                    goto skip_label;
                 }
+                //同一登陆点检测
+                if (client->m_bLogin && client->m_strRouter != strRouter)
+                {
+                    int reqid{0};
+                    m_sockBind.getsockopt(ZMQ_RCVMORE, &more, &more_size);
+                    if (more)
+                        recvPodObject(message, reqid);
+                    ReqResponse rsp;
+                    rsp.CmdType = cmd;
+                    rsp.ErrorID = EResponseErrType::TMultiLogin;
+                    rsp.RequestID = reqid;
+                    strcpy(rsp.ErrMsg, "Multi-Login Error");
+                    innerSendMsg((void *)strRouter.c_str(), strRouter.length(), true);
+                    int msgType = STCMsgPattern::TPassiveResponse;
+                    innerSendMsg(&msgType, sizeof(msgType), true);
+                    innerSendMsg(&rsp, sizeof(rsp));
+                    goto skip_label;
+                }
+                client->m_strRouter = strRouter;           //保持strRouter最新
+                client->m_tLastRead = SYSTEM_CLOCK::now(); //更新lastRead时间戳
                 onRecvCmd(cmd, client);
             }
             //忽略剩余帧
+        skip_label:
             while (1)
             {
                 m_sockBind.getsockopt(ZMQ_RCVMORE, &more, &more_size);
@@ -129,7 +191,7 @@ void DispatcherService::pollFunc()
     }
 }
 
-void DispatcherService::innerSendMsg(const char *data, int len, bool bMore)
+void DispatcherService::innerSendMsg(void *data, int len, bool bMore)
 {
     zmq_send(m_sockBind, data, len, bMore ? ZMQ_SNDMORE : 0);
 }
@@ -137,11 +199,14 @@ void DispatcherService::innerSendMsg(const char *data, int len, bool bMore)
 zmq::socket_t DispatcherService::inProcSocket()
 {
     zmq::socket_t socket(m_ctx, ZMQ_DEALER);
+    int hwm = 0;
+    zmq_setsockopt(socket, ZMQ_RCVHWM, &hwm, sizeof(hwm));
+    zmq_setsockopt(socket, ZMQ_SNDHWM, &hwm, sizeof(hwm));
     socket.connect(INPROC_BIND_ADDRESS);
     return socket;
 }
 
-void DispatcherService::outerSendMsg(zmq::socket_t &sndsocket, const char *data, int len, bool bMore)
+void DispatcherService::outerSendMsg(zmq::socket_t &sndsocket, void *data, int len, bool bMore)
 {
     zmq_send(sndsocket, data, len, bMore ? ZMQ_SNDMORE : 0);
 }
@@ -162,11 +227,12 @@ void DispatcherService::katimeHandle()
             client->m_tLastWrite = SYSTEM_CLOCK::now();
             //send keep alive cmd
             string strRouted = client->m_strRouter;
-            innerSendMsg(strRouted.c_str(), strRouted.length(), true);
+            innerSendMsg((void *)strRouted.c_str(), strRouted.length(), true);
             int msgType = STCMsgPattern::TActivePush;
-            innerSendMsg((char *)&msgType, sizeof(int), true);
+            innerSendMsg(&msgType, sizeof(int), true);
             int cmd = ECommandType::TKeepAlive;
-            innerSendMsg((char *)&cmd, sizeof(int));
+            innerSendMsg(&cmd, sizeof(int));
+            // std::cout << "send keep-alive cmd" << std::endl;
         }
     }
 }
@@ -179,26 +245,27 @@ void DispatcherService::onRecvCmd(int cmd, shared_ptr<DispatcherClient> client)
     case ECommandType::TLogin:
         onReqLogin(client);
         break;
+    case ECommandType::TLogout:
+        onReqLogout(client);
+        break;
     case ECommandType::TKeepAlive:
         onKeepAlive(client);
         break;
     case ECommandType::TQuery:
     {
         int reqid = 0;
-        m_sockBind.recv(message);
-        assert(message.size() == sizeof(int));
-        memcpy(&reqid, (char *)message.data(), sizeof(int));
+        recvPodObject<int>(message, reqid);
         int eletype = 0;
-        m_sockBind.recv(message);
-        assert(message.size() == sizeof(int));
-        memcpy(&eletype, (char *)message.data(), sizeof(int));
+        recvPodObject<int>(message, eletype);
         vector<ColumnFilter> colFilterVec;
         int more = 0;
         auto more_size = sizeof(more);
-        m_sockBind.getsockopt(ZMQ_RCVMORE, &more, &more_size);
         ColumnFilter filter;
-        while (more)
+        while (1)
         {
+            m_sockBind.getsockopt(ZMQ_RCVMORE, &more, &more_size);
+            if (!more)
+                break;
             m_sockBind.recv(message);
             filter.ColName = string((char *)message.data(), message.size());
             m_sockBind.recv(message);
@@ -211,33 +278,195 @@ void DispatcherService::onRecvCmd(int cmd, shared_ptr<DispatcherClient> client)
         for (int i = 0; i < colFilterVec.size(); i++)
         {
             memset(ch, 0, sizeof(ch));
-            sprintf(ch, " and %s=%s", colFilterVec[i].ColName.c_str(), colFilterVec[i].ColVal.c_str());
+            sprintf(ch, " and %s=\"%s\"",
+                    colFilterVec[i].ColName.c_str(), colFilterVec[i].ColVal.c_str());
             sql += ch;
         }
         sql += ";";
         switch (eletype)
         {
         case EElementType::TManageUser:
-            threadPool.submit([this, client, strsql = std::move(sql), reqid]() {
-                vector<ManageUser> res = qryManageUserBySql(strsql);
-            });
+            threadPool.submit(std::bind(&DispatcherService::onQryBySql<ManageUser>, this, client, std::move(sql), eletype, reqid));
             break;
-
+        case EElementType::TServerConfig:
+            threadPool.submit(std::bind(&DispatcherService::onQryBySql<ServerConfig>, this, client, std::move(sql), eletype, reqid));
+            break;
+        case EElementType::TStrategyConfig:
+            threadPool.submit(std::bind(&DispatcherService::onQryBySql<StrategyConfig>, this, client, std::move(sql), eletype, reqid));
+            break;
+        case EElementType::TDeployConfig:
+            threadPool.submit(std::bind(&DispatcherService::onQryBySql<DeployConfig>, this, client, std::move(sql), eletype, reqid));
+            break;
+        case EElementType::TDeployGroup:
+            threadPool.submit(std::bind(&DispatcherService::onQryBySql<DeployGroup>, this, client, std::move(sql), eletype, reqid));
+            break;
         default:
             break;
         }
     }
     break;
     case ECommandType::TDelete:
+    {
+        int reqid = 0;
+        recvPodObject<int>(message, reqid);
+        int eletype = 0;
+        recvPodObject<int>(message, eletype);
+        switch (eletype)
+        {
+        case EElementType::TManageUser:
+        {
+            vector<ManageUser> objVec;
+            recvVecObject(message, objVec);
+            threadPool.submit(std::bind(&DispatcherService::onDelByObjects<ManageUser>, this, client, std::move(objVec), reqid));
+        }
         break;
+        case EElementType::TServerConfig:
+        {
+            vector<ServerConfig> objVec;
+            recvVecObject(message, objVec);
+            threadPool.submit(std::bind(&DispatcherService::onDelByObjects<ServerConfig>, this, client, std::move(objVec), reqid));
+        }
+        break;
+        case EElementType::TStrategyConfig:
+        {
+            vector<StrategyConfig> objVec;
+            recvVecObject(message, objVec);
+            threadPool.submit(std::bind(&DispatcherService::onDelByObjects<StrategyConfig>, this, client, std::move(objVec), reqid));
+        }
+        break;
+        case EElementType::TDeployConfig:
+        {
+            vector<DeployConfig> objVec;
+            recvVecObject(message, objVec);
+            threadPool.submit(std::bind(&DispatcherService::onDelByObjects<DeployConfig>, this, client, std::move(objVec), reqid));
+        }
+        break;
+        case EElementType::TDeployGroup:
+        {
+            vector<DeployGroup> objVec;
+            recvVecObject(message, objVec);
+            threadPool.submit(std::bind(&DispatcherService::onDelByObjects<DeployGroup>, this, client, std::move(objVec), reqid));
+        }
+        break;
+        default:
+            skipRemainMFrame();
+            break;
+        }
+    }
+    break;
     case ECommandType::TInsert:
+    {
+        int reqid = 0;
+        recvPodObject<int>(message, reqid);
+        int eletype = 0;
+        recvPodObject<int>(message, eletype);
+        switch (eletype)
+        {
+        case EElementType::TManageUser:
+        {
+            vector<ManageUser> objVec;
+            recvVecObject(message, objVec);
+            m_bUpdManagerCache = true;
+            threadPool.submit(std::bind(&DispatcherService::onInsByObjects<ManageUser>, this, client, std::move(objVec), reqid));
+        }
+        break;
+        case EElementType::TServerConfig:
+        {
+            vector<ServerConfig> objVec;
+            recvVecObject(message, objVec);
+            threadPool.submit(std::bind(&DispatcherService::onInsByObjects<ServerConfig>, this, client, std::move(objVec), reqid));
+        }
+        break;
+        case EElementType::TStrategyConfig:
+        {
+            vector<StrategyConfig> objVec;
+            recvVecObject(message, objVec);
+            threadPool.submit(std::bind(&DispatcherService::onInsByObjects<StrategyConfig>, this, client, std::move(objVec), reqid));
+        }
+        break;
+        case EElementType::TDeployConfig:
+        {
+            vector<DeployConfig> objVec;
+            recvVecObject(message, objVec);
+            threadPool.submit(std::bind(&DispatcherService::onInsByObjects<DeployConfig>, this, client, std::move(objVec), reqid));
+        }
+        break;
+        case EElementType::TDeployGroup:
+        {
+            vector<DeployGroup> objVec;
+            recvVecObject(message, objVec);
+            threadPool.submit(std::bind(&DispatcherService::onInsByObjects<DeployGroup>, this, client, std::move(objVec), reqid));
+        }
+        break;
+        default:
+            skipRemainMFrame();
+            break;
+        }
+    }
+    break;
     case ECommandType::TUpdate:
+    {
+        int reqid = 0;
+        recvPodObject<int>(message, reqid);
+        int eletype = 0;
+        recvPodObject<int>(message, eletype);
+        switch (eletype)
+        {
+        case EElementType::TManageUser:
+        {
+            vector<ManageUser> objVec;
+            recvVecObject(message, objVec);
+            threadPool.submit(std::bind(&DispatcherService::onUpdByObjects<ManageUser>, this, client, std::move(objVec), reqid));
+        }
+        break;
+        case EElementType::TServerConfig:
+        {
+            vector<ServerConfig> objVec;
+            recvVecObject(message, objVec);
+            threadPool.submit(std::bind(&DispatcherService::onUpdByObjects<ServerConfig>, this, client, std::move(objVec), reqid));
+        }
+        break;
+        case EElementType::TStrategyConfig:
+        {
+            vector<StrategyConfig> objVec;
+            recvVecObject(message, objVec);
+            threadPool.submit(std::bind(&DispatcherService::onUpdByObjects<StrategyConfig>, this, client, std::move(objVec), reqid));
+        }
+        break;
+        case EElementType::TDeployConfig:
+        {
+            vector<DeployConfig> objVec;
+            recvVecObject(message, objVec);
+            threadPool.submit(std::bind(&DispatcherService::onUpdByObjects<DeployConfig>, this, client, std::move(objVec), reqid));
+        }
+        break;
+        case EElementType::TDeployGroup:
+        {
+            vector<DeployGroup> objVec;
+            recvVecObject(message, objVec);
+            threadPool.submit(std::bind(&DispatcherService::onUpdByObjects<DeployGroup>, this, client, std::move(objVec), reqid));
+        }
+        break;
+        default:
+            skipRemainMFrame();
+            break;
+        }
+    }
+    break;
     case ECommandType::TDeploy:
+        //TODO
+        skipRemainMFrame();
+        break;
     case ECommandType::TExecute:
+        //TODO
+        skipRemainMFrame();
+        break;
     case ECommandType::TFinish:
         //TODO
+        skipRemainMFrame();
         break;
     default:
+        skipRemainMFrame();
         break;
     }
 }
@@ -267,50 +496,59 @@ void DispatcherService::onReqLogin(shared_ptr<DispatcherClient> client)
         strcpy(rsp.ErrMsg, "Login Successfully");
     }
     //////send response//////
-    innerSendMsg(client->m_strRouter.c_str(), client->m_strRouter.length(), true);
+    innerSendMsg((void *)client->m_strRouter.c_str(), client->m_strRouter.length(), true);
     int msgType = STCMsgPattern::TPassiveResponse;
-    innerSendMsg((const char *)&msgType, sizeof(int), true);
-    innerSendMsg((const char *)&rsp, sizeof(rsp));
+    innerSendMsg(&msgType, sizeof(int), true);
+    innerSendMsg(&rsp, sizeof(rsp));
+}
+
+void DispatcherService::onReqLogout(shared_ptr<DispatcherClient> client)
+{
+    zmq::message_t message;
+    //request id
+    m_sockBind.recv(message);
+    int reqid = 0;
+    assert(message.size() == sizeof(int));
+    memcpy(&reqid, (char *)message.data(), sizeof(int));
+
+    ///////////////////////response///////////////////////
+    ReqResponse rsp;
+    rsp.RequestID = reqid;
+    rsp.CmdType = ECommandType::TLogout;
+
+    client->m_bLogin = false;
+    rsp.ErrorID = EResponseErrType::TSuccess;
+    strcpy(rsp.ErrMsg, "Logout Successfully");
+
+    //////send response//////
+    innerSendMsg((void *)client->m_strRouter.c_str(), client->m_strRouter.length(), true);
+    int msgType = STCMsgPattern::TPassiveResponse;
+    innerSendMsg(&msgType, sizeof(int), true);
+    innerSendMsg(&rsp, sizeof(rsp));
 }
 
 void DispatcherService::onKeepAlive(shared_ptr<DispatcherClient> client)
 {
     client->m_tLastRead = SYSTEM_CLOCK::now();
-}
-
-void DispatcherService::onQryByColumnFilter(shared_ptr<DispatcherClient> client, vector<ColumnFilter> &colFilterVec, char *tableName, int requestId)
-{
-    char ch[64] = {0};
-    sprintf(ch, "select * from %s where 1=1", tableName);
-    string sql = ch;
-    for (int i = 0; i < colFilterVec.size(); i++)
-    {
-        memset(ch, 0, sizeof(ch));
-        sprintf(ch, " and %s=%s", colFilterVec[i].ColName.c_str(), colFilterVec[i].ColVal.c_str());
-        sql += ch;
-    }
-    sql += ";";
-    SQLiteDatabase db(DISPATCHER_DATABASE);
-    db.open();
-    SQLiteStatement stmt = db.compileStatement(sql);
-    db.beginTransaction();
-    SQLiteResultSet result = stmt.executeQuery();
-    while (result.next())
-    {
-        result.getString()
-    }
-
-    db.commitTransaction();
-    db.close();
-}
-
-void DispatcherService::onDelByColumnFilter(shared_ptr<DispatcherClient> client, vector<ColumnFilter> &colFilterVec, char *tableName, int requestId)
-{
+    // std::cout << "receive keep-alive cmd" << std::endl;
 }
 
 bool DispatcherService::identifyUser(const string &strid)
 {
-    bool ret{false};
-    //TODO
-    return ret;
+    auto it = m_setManagerCache.find(strid);
+    return it != m_setManagerCache.end();
+}
+
+void DispatcherService::skipRemainMFrame() //忽略剩余的消息帧
+{
+    zmq::message_t message;
+    int more = 0;
+    auto more_size = sizeof(more);
+    while (1)
+    {
+        m_sockBind.getsockopt(ZMQ_RCVMORE, &more, &more_size);
+        if (!more)
+            break;
+        m_sockBind.recv(message);
+    }
 }

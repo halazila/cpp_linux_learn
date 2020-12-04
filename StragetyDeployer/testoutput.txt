@@ -1,0 +1,47 @@
+DispManagerImpl::OnConnect()
+DispManagerImpl::OnRspLogin
+Login Successfully
+Manager: ManagerID=0,ManagerName=admin,ManagerPasswd=admin
+requestid 3167 all returned
+ManageUser delete request, id=3168
+ServerConfig delete request, id=3169
+StrategyConfig delete request, id=3170
+DeployConfig delete request, id=3171
+DeployGroup delete request, id=3172
+Delete request: 0, Result: Delete Successfully
+Delete request: 0, Result: Delete Successfully
+Delete request: 0, Result: Delete Successfully
+Delete request: 0, Result: Delete Successfully
+Delete request: 0, Result: Delete Successfully
+ManageUser insert request, id=3173
+ServerConfig insert request, id=3174
+StrategyConfig insert request, id=3175
+DeployConfig insert request, id=3176
+DeployGroup insert request, id=3177
+Insert request: 0, Result: Insert Failed
+Insert request: 0, Result: Insert Failed
+Insert request: 0, Result: Insert Failed
+ManageUser query request, id=3178
+ServerConfig query request, id=3179
+StrategyConfig query request, id=3180
+DeployConfig query request, id=3181
+DeployGroup query request, id=3182
+ManageUser update request, id=3183
+ServerConfig update request, id=3184
+ManageUser query request, id=3185
+ServerConfig query request, id=3186
+StrategyConfig query request, id=3187
+DeployConfig query request, id=3188
+DeployGroup query request, id=3189
+Update request: 0, Result: Identify Error
+Update request: 0, Result: Identify Error
+Insert request: 0, Result: Insert Successfully
+receive keep-alive cmd
+Insert request: 0, Result: Insert Failed
+receive keep-alive cmd
+receive keep-alive cmd
+receive keep-alive cmd
+receive keep-alive cmd
+receive keep-alive cmd
+receive keep-alive cmd
+receive keep-alive cmd

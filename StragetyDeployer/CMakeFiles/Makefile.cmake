@@ -45,5 +45,7 @@ set(CMAKE_MAKEFILE_PRODUCTS
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
+  "CMakeFiles/service_test.dir/DependInfo.cmake"
+  "CMakeFiles/manager_test.dir/DependInfo.cmake"
   "CMakeFiles/sqlite_test.dir/DependInfo.cmake"
   )

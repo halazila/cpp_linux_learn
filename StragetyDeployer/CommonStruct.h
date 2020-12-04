@@ -1,11 +1,11 @@
 #pragma once
+#include <string>
 
 #pragma pack(push, 4)
 /////数据库表元素-begin/////
 //管理用户
 struct ManageUser
 {
-    int ManagerID;
     char ManagerName[64];
     char ManagerPasswd[64];
 };
@@ -23,7 +23,7 @@ struct StrategyConfig
     char PlatformName[128];
     char StragetyName[128];
     char SrcRootDir[256];
-    int OwnerID; //ManageUser.ManagerID
+    char ManagerName[64]; //ManageUser.ManagerName
 };
 //部署配置
 struct DeployConfig
@@ -34,7 +34,7 @@ struct DeployConfig
     char UserPasswd[64];
     char DstRootDir[256];
     char ExeUser[64];
-    int OwnerID; //ManageUser.ManagerID
+    char ManagerName[64]; //ManageUser.ManagerName
 };
 //部署组
 struct DeployGroup
@@ -42,7 +42,7 @@ struct DeployGroup
     char GroupName[64];
     char StragetyConfig[64];
     char DeployConfig[64];
-    int OwnerID; //ManageUser.ManagerID
+    char ManagerName[64]; //ManageUser.ManagerName
 };
 /////数据库表元素-end/////
 //返回消息基类
@@ -83,7 +83,7 @@ enum EElementType : int
     TDeployGroup,
 };
 //表名映射
-char *AllTableNames[] = {
+static const char *AllTableNames[] = {
     "ManageUser",
     "ServerConfig",
     "StrategyConfig",
@@ -102,7 +102,8 @@ enum EResponseErrType : int
     TSuccess,
     TReplicatedLogin, //重复登录
     TIdentifyErr,
-    TNoLogin,
+    TNoLogin, //未登录
+    TMultiLogin,
     TDbError,
     TSshError,
 };
@@ -124,7 +125,7 @@ struct ColumnFilter
 };
 
 ////消息帧顺序定义///
-//**client-->server**//
+//**client-->server**// 除keep-alive命令以外其他都有requestid
 //managerid->cmd->[requestid->[element type]->element...]
 //**server-->client**//
 //PassiveResponse->Response->[element-type->element...]

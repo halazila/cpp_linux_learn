@@ -111,6 +111,32 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named service_test
+
+# Build rule for target.
+service_test: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 service_test
+.PHONY : service_test
+
+# fast build rule for target.
+service_test/fast:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/build
+.PHONY : service_test/fast
+
+#=============================================================================
+# Target rules for targets named manager_test
+
+# Build rule for target.
+manager_test: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 manager_test
+.PHONY : manager_test
+
+# fast build rule for target.
+manager_test/fast:
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/build
+.PHONY : manager_test/fast
+
+#=============================================================================
 # Target rules for targets named sqlite_test
 
 # Build rule for target.
@@ -123,12 +149,134 @@ sqlite_test/fast:
 	$(MAKE) -f CMakeFiles/sqlite_test.dir/build.make CMakeFiles/sqlite_test.dir/build
 .PHONY : sqlite_test/fast
 
+AsyncZmqApi.o: AsyncZmqApi.cpp.o
+
+.PHONY : AsyncZmqApi.o
+
+# target to build an object file
+AsyncZmqApi.cpp.o:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/AsyncZmqApi.cpp.o
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/AsyncZmqApi.cpp.o
+.PHONY : AsyncZmqApi.cpp.o
+
+AsyncZmqApi.i: AsyncZmqApi.cpp.i
+
+.PHONY : AsyncZmqApi.i
+
+# target to preprocess a source file
+AsyncZmqApi.cpp.i:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/AsyncZmqApi.cpp.i
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/AsyncZmqApi.cpp.i
+.PHONY : AsyncZmqApi.cpp.i
+
+AsyncZmqApi.s: AsyncZmqApi.cpp.s
+
+.PHONY : AsyncZmqApi.s
+
+# target to generate assembly for a file
+AsyncZmqApi.cpp.s:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/AsyncZmqApi.cpp.s
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/AsyncZmqApi.cpp.s
+.PHONY : AsyncZmqApi.cpp.s
+
+DispManagerImpl.o: DispManagerImpl.cpp.o
+
+.PHONY : DispManagerImpl.o
+
+# target to build an object file
+DispManagerImpl.cpp.o:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/DispManagerImpl.cpp.o
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/DispManagerImpl.cpp.o
+.PHONY : DispManagerImpl.cpp.o
+
+DispManagerImpl.i: DispManagerImpl.cpp.i
+
+.PHONY : DispManagerImpl.i
+
+# target to preprocess a source file
+DispManagerImpl.cpp.i:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/DispManagerImpl.cpp.i
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/DispManagerImpl.cpp.i
+.PHONY : DispManagerImpl.cpp.i
+
+DispManagerImpl.s: DispManagerImpl.cpp.s
+
+.PHONY : DispManagerImpl.s
+
+# target to generate assembly for a file
+DispManagerImpl.cpp.s:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/DispManagerImpl.cpp.s
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/DispManagerImpl.cpp.s
+.PHONY : DispManagerImpl.cpp.s
+
+DispatcherManager.o: DispatcherManager.cpp.o
+
+.PHONY : DispatcherManager.o
+
+# target to build an object file
+DispatcherManager.cpp.o:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/DispatcherManager.cpp.o
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/DispatcherManager.cpp.o
+.PHONY : DispatcherManager.cpp.o
+
+DispatcherManager.i: DispatcherManager.cpp.i
+
+.PHONY : DispatcherManager.i
+
+# target to preprocess a source file
+DispatcherManager.cpp.i:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/DispatcherManager.cpp.i
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/DispatcherManager.cpp.i
+.PHONY : DispatcherManager.cpp.i
+
+DispatcherManager.s: DispatcherManager.cpp.s
+
+.PHONY : DispatcherManager.s
+
+# target to generate assembly for a file
+DispatcherManager.cpp.s:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/DispatcherManager.cpp.s
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/DispatcherManager.cpp.s
+.PHONY : DispatcherManager.cpp.s
+
+DispatcherService.o: DispatcherService.cpp.o
+
+.PHONY : DispatcherService.o
+
+# target to build an object file
+DispatcherService.cpp.o:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/DispatcherService.cpp.o
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/DispatcherService.cpp.o
+.PHONY : DispatcherService.cpp.o
+
+DispatcherService.i: DispatcherService.cpp.i
+
+.PHONY : DispatcherService.i
+
+# target to preprocess a source file
+DispatcherService.cpp.i:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/DispatcherService.cpp.i
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/DispatcherService.cpp.i
+.PHONY : DispatcherService.cpp.i
+
+DispatcherService.s: DispatcherService.cpp.s
+
+.PHONY : DispatcherService.s
+
+# target to generate assembly for a file
+DispatcherService.cpp.s:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/DispatcherService.cpp.s
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/DispatcherService.cpp.s
+.PHONY : DispatcherService.cpp.s
+
 SQLiteDatabase.o: SQLiteDatabase.cpp.o
 
 .PHONY : SQLiteDatabase.o
 
 # target to build an object file
 SQLiteDatabase.cpp.o:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/SQLiteDatabase.cpp.o
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/SQLiteDatabase.cpp.o
 	$(MAKE) -f CMakeFiles/sqlite_test.dir/build.make CMakeFiles/sqlite_test.dir/SQLiteDatabase.cpp.o
 .PHONY : SQLiteDatabase.cpp.o
 
@@ -138,6 +286,8 @@ SQLiteDatabase.i: SQLiteDatabase.cpp.i
 
 # target to preprocess a source file
 SQLiteDatabase.cpp.i:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/SQLiteDatabase.cpp.i
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/SQLiteDatabase.cpp.i
 	$(MAKE) -f CMakeFiles/sqlite_test.dir/build.make CMakeFiles/sqlite_test.dir/SQLiteDatabase.cpp.i
 .PHONY : SQLiteDatabase.cpp.i
 
@@ -147,8 +297,94 @@ SQLiteDatabase.s: SQLiteDatabase.cpp.s
 
 # target to generate assembly for a file
 SQLiteDatabase.cpp.s:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/SQLiteDatabase.cpp.s
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/SQLiteDatabase.cpp.s
 	$(MAKE) -f CMakeFiles/sqlite_test.dir/build.make CMakeFiles/sqlite_test.dir/SQLiteDatabase.cpp.s
 .PHONY : SQLiteDatabase.cpp.s
+
+dboperatefunc.o: dboperatefunc.cpp.o
+
+.PHONY : dboperatefunc.o
+
+# target to build an object file
+dboperatefunc.cpp.o:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/dboperatefunc.cpp.o
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/dboperatefunc.cpp.o
+.PHONY : dboperatefunc.cpp.o
+
+dboperatefunc.i: dboperatefunc.cpp.i
+
+.PHONY : dboperatefunc.i
+
+# target to preprocess a source file
+dboperatefunc.cpp.i:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/dboperatefunc.cpp.i
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/dboperatefunc.cpp.i
+.PHONY : dboperatefunc.cpp.i
+
+dboperatefunc.s: dboperatefunc.cpp.s
+
+.PHONY : dboperatefunc.s
+
+# target to generate assembly for a file
+dboperatefunc.cpp.s:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/dboperatefunc.cpp.s
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/dboperatefunc.cpp.s
+.PHONY : dboperatefunc.cpp.s
+
+manager_test.o: manager_test.cpp.o
+
+.PHONY : manager_test.o
+
+# target to build an object file
+manager_test.cpp.o:
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/manager_test.cpp.o
+.PHONY : manager_test.cpp.o
+
+manager_test.i: manager_test.cpp.i
+
+.PHONY : manager_test.i
+
+# target to preprocess a source file
+manager_test.cpp.i:
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/manager_test.cpp.i
+.PHONY : manager_test.cpp.i
+
+manager_test.s: manager_test.cpp.s
+
+.PHONY : manager_test.s
+
+# target to generate assembly for a file
+manager_test.cpp.s:
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/manager_test.cpp.s
+.PHONY : manager_test.cpp.s
+
+service_test.o: service_test.cpp.o
+
+.PHONY : service_test.o
+
+# target to build an object file
+service_test.cpp.o:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/service_test.cpp.o
+.PHONY : service_test.cpp.o
+
+service_test.i: service_test.cpp.i
+
+.PHONY : service_test.i
+
+# target to preprocess a source file
+service_test.cpp.i:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/service_test.cpp.i
+.PHONY : service_test.cpp.i
+
+service_test.s: service_test.cpp.s
+
+.PHONY : service_test.s
+
+# target to generate assembly for a file
+service_test.cpp.s:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/service_test.cpp.s
+.PHONY : service_test.cpp.s
 
 sqlite_test.o: sqlite_test.cpp.o
 
@@ -185,10 +421,33 @@ help:
 	@echo "... depend"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
+	@echo "... service_test"
+	@echo "... manager_test"
 	@echo "... sqlite_test"
+	@echo "... AsyncZmqApi.o"
+	@echo "... AsyncZmqApi.i"
+	@echo "... AsyncZmqApi.s"
+	@echo "... DispManagerImpl.o"
+	@echo "... DispManagerImpl.i"
+	@echo "... DispManagerImpl.s"
+	@echo "... DispatcherManager.o"
+	@echo "... DispatcherManager.i"
+	@echo "... DispatcherManager.s"
+	@echo "... DispatcherService.o"
+	@echo "... DispatcherService.i"
+	@echo "... DispatcherService.s"
 	@echo "... SQLiteDatabase.o"
 	@echo "... SQLiteDatabase.i"
 	@echo "... SQLiteDatabase.s"
+	@echo "... dboperatefunc.o"
+	@echo "... dboperatefunc.i"
+	@echo "... dboperatefunc.s"
+	@echo "... manager_test.o"
+	@echo "... manager_test.i"
+	@echo "... manager_test.s"
+	@echo "... service_test.o"
+	@echo "... service_test.i"
+	@echo "... service_test.s"
 	@echo "... sqlite_test.o"
 	@echo "... sqlite_test.i"
 	@echo "... sqlite_test.s"

@@ -11,6 +11,8 @@ set(ZMQ_SOURCE
 ./DispatcherManager.cpp
 ./DispatcherService.h
 ./DispatcherService.cpp
+./DispManagerImpl.h
+./DispManagerImpl.cpp
 )
 
 set(SQLITE_SOURCE
@@ -20,9 +22,19 @@ set(SQLITE_SOURCE
 ./sqlite3.h
 )
 
+set(DBOP_SOURCE
+./dbopmacros.h
+./dboperatefunc.h
+./dboperatefunc.cpp
+)
+
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 link_directories(.)
 
 set(CMAKE_CXX_FLAGS "-fPIC")
 link_libraries(sqlite3 pthread zmq dl)
 add_executable(sqlite_test ${SQLITE_SOURCE} ./sqlite_test.cpp)
+add_executable(manager_test ${SQLITE_SOURCE} ${ZMQ_SOURCE} ${DBOP_SOURCE} ./manager_test.cpp)
+add_executable(service_test ${SQLITE_SOURCE} ${ZMQ_SOURCE} ${DBOP_SOURCE} ./service_test.cpp)
+
+

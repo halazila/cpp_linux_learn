@@ -1,0 +1,46 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/xiongbaohua/source/StragetyDeployer/AsyncZmqApi.h
+thread
+-
+functional
+-
+iostream
+-
+zmq.hpp
+/home/xiongbaohua/source/StragetyDeployer/zmq.hpp
+CommonStruct.h
+/home/xiongbaohua/source/StragetyDeployer/CommonStruct.h
+
+/home/xiongbaohua/source/StragetyDeployer/CommonStruct.h
+string
+-
+
+/home/xiongbaohua/source/StragetyDeployer/DispManagerImpl.h
+DispatcherManager.h
+/home/xiongbaohua/source/StragetyDeployer/DispatcherManager.h
+
+/home/xiongbaohua/source/StragetyDeployer/DispatcherManager.h
+vector
+-
+AsyncZmqApi.h
+/home/xiongbaohua/source/StragetyDeployer/AsyncZmqApi.h
+
+/home/xiongbaohua/source/StragetyDeployer/manager_test.cpp
+thread
+-
+iostream
+-
+DispatcherManager.h
+/home/xiongbaohua/source/StragetyDeployer/DispatcherManager.h
+AsyncZmqApi.h
+/home/xiongbaohua/source/StragetyDeployer/AsyncZmqApi.h
+DispManagerImpl.h
+/home/xiongbaohua/source/StragetyDeployer/DispManagerImpl.h
+

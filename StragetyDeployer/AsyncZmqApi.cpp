@@ -1,16 +1,48 @@
 #include "AsyncZmqApi.h"
 #include "CommonStruct.h"
 
-AsyncZmqApi::AsyncZmqApi()
+TcpSockConnectMonitor::TcpSockConnectMonitor()
 {
-    //context initial
-    m_ctx = zmq::context_t(1);
-    //tcp-socket initial
-    m_sockTcp = zmq::socket_t(m_ctx, ZMQ_DEALER);
-    //thread-socket server
-    m_sockInprocServer = zmq::socket_t(m_ctx, ZMQ_ROUTER);
+}
+
+TcpSockConnectMonitor::~TcpSockConnectMonitor()
+{
+}
+
+void TcpSockConnectMonitor::on_event_connected(const zmq_event_t &event_, const char *addr_)
+{
+    if (m_pAsyncApi)
+    {
+        m_pAsyncApi->m_bTcpConnected = true;
+        if (m_pAsyncApi->m_funcConnect)
+            m_pAsyncApi->m_funcConnect();
+    }
+}
+
+void TcpSockConnectMonitor::on_event_disconnected(const zmq_event_t &event_, const char *addr_)
+{
+    if (m_pAsyncApi)
+    {
+        m_pAsyncApi->m_bTcpConnected = false;
+        if (m_pAsyncApi->m_funcDisconnect)
+            m_pAsyncApi->m_funcDisconnect();
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+AsyncZmqApi::AsyncZmqApi()
+    : m_ctx(1), m_sockTcp(m_ctx, ZMQ_DEALER), m_sockInprocServer(m_ctx, ZMQ_ROUTER)
+{
+    int hwm = 0;
+    ///设置套接字接收、发送队列缓存长度，设置为0表示不限制
+    zmq_setsockopt(m_sockTcp, ZMQ_RCVHWM, &hwm, sizeof(hwm));
+    zmq_setsockopt(m_sockTcp, ZMQ_SNDHWM, &hwm, sizeof(hwm));
+    zmq_setsockopt(m_sockInprocServer, ZMQ_RCVHWM, &hwm, sizeof(hwm));
+    zmq_setsockopt(m_sockInprocServer, ZMQ_SNDHWM, &hwm, sizeof(hwm));
+    //线程通信服务端绑定
     m_sockInprocServer.bind(API_INPROC_BIND_ADDRESS);
     //monitor initialization
+    m_monitConnect.m_pAsyncApi = this;
     m_monitConnect.init(m_sockTcp, "inproc://monitor-tcpclient", ZMQ_EVENT_CONNECTED | ZMQ_EVENT_DISCONNECTED);
 }
 
@@ -42,7 +74,7 @@ void AsyncZmqApi::Start()
     m_bStop = false;
     if (!m_bPolling)
     {
-        m_thdPoll = std::thread(std::bind(AsyncZmqApi::pollFunc, this));
+        m_thdPoll = std::thread(std::bind(&AsyncZmqApi::pollFunc, this));
     }
 }
 
@@ -54,6 +86,9 @@ void AsyncZmqApi::Stop()
 zmq::socket_t AsyncZmqApi::InProcSocket()
 {
     zmq::socket_t socket(m_ctx, ZMQ_DEALER);
+    int hwm = 0;
+    zmq_setsockopt(socket, ZMQ_RCVHWM, &hwm, sizeof(hwm));
+    zmq_setsockopt(socket, ZMQ_SNDHWM, &hwm, sizeof(hwm));
     socket.connect(API_INPROC_BIND_ADDRESS);
     return socket;
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include <thread>
 #include <functional>
+#include <iostream>
 #include "zmq.hpp"
 #include "CommonStruct.h"
 
@@ -12,32 +13,17 @@
 #define ASYNCZMQAPI_ERROR -1
 
 class AsyncZmqApi;
+
 class TcpSockConnectMonitor : public zmq::monitor_t
 {
-private:
+public:
     AsyncZmqApi *m_pAsyncApi = nullptr;
 
 public:
-    TcpSockConnectMonitor() {}
-    ~TcpSockConnectMonitor() {}
-    void on_event_connected(const zmq_event_t &event_, const char *addr_) override
-    {
-        if (m_pAsyncApi)
-        {
-            m_pAsyncApi->m_bTcpConnected = true;
-            if (m_pAsyncApi->m_funcConnect)
-                m_pAsyncApi->m_funcConnect();
-        }
-    }
-    void on_event_disconnected(const zmq_event_t &event_, const char *addr_) override
-    {
-        if (m_pAsyncApi)
-        {
-            m_pAsyncApi->m_bTcpConnected = false;
-            if (m_pAsyncApi->m_funcDisconnect)
-                m_pAsyncApi->m_funcDisconnect();
-        }
-    }
+    TcpSockConnectMonitor();
+    ~TcpSockConnectMonitor();
+    void on_event_connected(const zmq_event_t &event_, const char *addr_) override;
+    void on_event_disconnected(const zmq_event_t &event_, const char *addr_) override;
 };
 
 class AsyncZmqApi
@@ -46,7 +32,7 @@ private:
     zmq::context_t m_ctx;                 //上下文
     zmq::socket_t m_sockTcp;              //tcp通信套接字
     zmq::socket_t m_sockInprocServer;     //线程通信套接字-server
-    zmq::socket_t m_sockInprocClient;     //线程通信套接字-client
+    // zmq::socket_t m_sockInprocClient;     //线程通信套接字-client
     TcpSockConnectMonitor m_monitConnect; //tcp连接监视器
     std::thread m_thdPoll;                //poll 线程
     bool m_bInitConnect = false;          //tcp通信套接字是否连接
@@ -62,28 +48,13 @@ public:
     AsyncZmqApi();
     ~AsyncZmqApi();
     //连接状态
-    bool IsConnected()
-    {
-        return m_bTcpConnected;
-    }
+    bool IsConnected();
     //设置远端地址,格式 tcp://127.0.0.1:5889
-    void SetRemoteAddr(const std::string &strAddr)
-    {
-        m_strAddr = strAddr;
-    }
+    void SetRemoteAddr(const std::string &strAddr);
     //设置接收回调
-    void SetRecvCallback(RecvFunction recvFunc)
-    {
-        m_funcRecv = recvFunc;
-    }
-    void SetConnectCallback(ConnectFunction connFunc)
-    {
-        m_funcConnect = connFunc;
-    }
-    void SetDisconnectCallback(DisconnectFunction discFun)
-    {
-        m_funcDisconnect = discFun;
-    }
+    void SetRecvCallback(RecvFunction recvFunc);
+    void SetConnectCallback(ConnectFunction connFunc);
+    void SetDisconnectCallback(DisconnectFunction discFun);
     //连接远端服务器
     int Connect();
     void Start();
@@ -97,3 +68,24 @@ private:
 
     friend class TcpSockConnectMonitor;
 };
+
+inline bool AsyncZmqApi::IsConnected()
+{
+    return m_bTcpConnected;
+}
+inline void AsyncZmqApi::SetRemoteAddr(const std::string &strAddr)
+{
+    m_strAddr = strAddr;
+}
+inline void AsyncZmqApi::SetRecvCallback(RecvFunction recvFunc)
+{
+    m_funcRecv = recvFunc;
+}
+inline void AsyncZmqApi::SetConnectCallback(ConnectFunction connFunc)
+{
+    m_funcConnect = connFunc;
+}
+inline void AsyncZmqApi::SetDisconnectCallback(DisconnectFunction discFun)
+{
+    m_funcDisconnect = discFun;
+}

@@ -4,7 +4,7 @@ DispatcherManager::DispatcherManager(/* args */)
 {
     azmqApi.SetRecvCallback(std::bind(&DispatcherManager::recvHandle, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     azmqApi.SetConnectCallback(std::bind(&DispatcherManager::OnConnect, this));
-    azmqApi.SetConnectCallback(std::bind(&DispatcherManager::OnDisconnect, this));
+    azmqApi.SetDisconnectCallback(std::bind(&DispatcherManager::OnDisconnect, this));
 }
 
 DispatcherManager::~DispatcherManager()
@@ -128,10 +128,12 @@ int DispatcherManager::ReqDeployExecuteFinish(const vector<DeployGroup> &depGrpV
 
 void DispatcherManager::OnConnect()
 {
+    cout << "DispatcherManager::OnConnect()" << endl;
 }
 
 void DispatcherManager::OnDisconnect()
 {
+    cout << "DispatcherManager::OnDisconnect()" << endl;
 }
 
 void DispatcherManager::OnRspQryManageUser(CommResponse *pRsp, ManageUser *pManagerUser, int nRequestId, bool bLast)
@@ -174,15 +176,15 @@ void DispatcherManager::OnRspFinish(CommResponse *pRsp, int nRequestId)
 {
 }
 
-void DispatcherManager::OnRspInsert(CommResponse *pRsp, int nRequestId, int nEleType)
+void DispatcherManager::OnRspInsert(CommResponse *pRsp, int nRequestId)
 {
 }
 
-void DispatcherManager::OnRspUpdate(CommResponse *pRsp, int nRequestId, int nEleType)
+void DispatcherManager::OnRspUpdate(CommResponse *pRsp, int nRequestId)
 {
 }
 
-void DispatcherManager::OnRspDelete(CommResponse *pRsp, int nRequestId, int nEleType)
+void DispatcherManager::OnRspDelete(CommResponse *pRsp, int nRequestId)
 {
 }
 
@@ -295,6 +297,15 @@ void DispatcherManager::onReqRsp(ReqResponse &reqRsp)
     case ECommandType::TFinish:
         OnRspFinish(&reqRsp, reqRsp.RequestID);
         break;
+    case ECommandType::TInsert:
+        OnRspInsert(&reqRsp, reqRsp.RequestID);
+        break;
+    case ECommandType::TDelete:
+        OnRspDelete(&reqRsp, reqRsp.RequestID);
+        break;
+    case ECommandType::TUpdate:
+        OnRspUpdate(&reqRsp, reqRsp.RequestID);
+        break;
     default:
         OnRspCommon(&reqRsp, reqRsp.RequestID);
         break;
@@ -332,16 +343,6 @@ void DispatcherManager::onReqRsp(ReqResponse &reqRsp, int nEleType, char *data, 
             break;
         }
         break;
-    case ECommandType::TInsert:
-        OnRspInsert(&reqRsp, reqRsp.RequestID, nEleType);
-        break;
-    case ECommandType::TDelete:
-        OnRspDelete(&reqRsp, reqRsp.RequestID, nEleType);
-        break;
-    case ECommandType::TUpdate:
-        OnRspUpdate(&reqRsp, reqRsp.RequestID, nEleType);
-        break;
-
     default:
         break;
     }
@@ -357,6 +358,7 @@ void DispatcherManager::onMsgPush(int cmd)
         int cmd = ECommandType::TKeepAlive;
         azmqApi.Send(sock, m_strIdentity.c_str(), m_strIdentity.length(), false);
         azmqApi.Send(sock, (const char *)&cmd, sizeof(cmd));
+        // std::cout << "receive keep-alive cmd" << std::endl;
     }
     break;
     default:
