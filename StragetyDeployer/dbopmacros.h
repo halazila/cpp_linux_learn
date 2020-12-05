@@ -94,96 +94,129 @@
     (__VA_ARGS__)
 
 /////insert macros/////
-#define InsertByVector(sql, objVec, ...)                                                                                 \
-    if (objVec.size() == 0)                                                                                              \
-        return 0;                                                                                                        \
-    SQLiteDatabase db(DISPATCHER_DATABASE);                                                                              \
-    db.open();                                                                                                           \
-    SQLiteStatement stmt = db.compileStatement(sql);                                                                     \
-    int res = 0;                                                                                                         \
-    for (int i = 0; i < objVec.size(); i++)                                                                              \
-    {                                                                                                                    \
-        STMT_BIND(__VA_ARGS__, i, objVec);                                                                               \
-        res = stmt.executeInsert();                                                                                      \
-        if (res < 0)                                                                                                     \
-        {                                                                                                                \
-            std::cout << __FILE__ << ": " << __LINE__ << " Error: " << db.errcode() << ", " << db.errmsg() << std::endl; \
-            StaticDefines::sqlite_error_msg = db.errmsg();                                                               \
-            break;                                                                                                       \
-        }                                                                                                                \
-        stmt.clearBindings();                                                                                            \
-    }                                                                                                                    \
-    if (res < 0)                                                                                                         \
-        db.rollbackTransaction();                                                                                        \
-    else                                                                                                                 \
-        db.commitTransaction();                                                                                          \
-    db.close();                                                                                                          \
+#define InsertByVector(sql, objVec, ...)                                                                                     \
+    if (objVec.size() == 0)                                                                                                  \
+        return 0;                                                                                                            \
+    SQLiteDatabase db(DISPATCHER_DATABASE);                                                                                  \
+    db.open();                                                                                                               \
+    SQLiteStatement stmt = db.compileStatement(sql);                                                                         \
+    int res = 0;                                                                                                             \
+    if (stmt.isValid())                                                                                                      \
+    {                                                                                                                        \
+        for (int i = 0; i < objVec.size(); i++)                                                                              \
+        {                                                                                                                    \
+            STMT_BIND(__VA_ARGS__, i, objVec);                                                                               \
+            res = stmt.executeInsert();                                                                                      \
+            if (res < 0)                                                                                                     \
+            {                                                                                                                \
+                std::cout << __FILE__ << ": " << __LINE__ << " Error: " << db.errcode() << ", " << db.errmsg() << std::endl; \
+                StaticDefines::sqlite_error_msg = db.errmsg();                                                               \
+                break;                                                                                                       \
+            }                                                                                                                \
+            stmt.clearBindings();                                                                                            \
+        }                                                                                                                    \
+        if (res < 0)                                                                                                         \
+            db.rollbackTransaction();                                                                                        \
+        else                                                                                                                 \
+            db.commitTransaction();                                                                                          \
+    }                                                                                                                        \
+    else                                                                                                                     \
+    {                                                                                                                        \
+        StaticDefines::sqlite_error_msg = db.errmsg();                                                                       \
+        res = SQLITEDATABASE_ERROR;                                                                                          \
+    }                                                                                                                        \
+    db.close();                                                                                                              \
     return res
 
 /////update macros/////
-#define UpdateByVector(sql, objVec, ...)                                                                                 \
-    if (objVec.size() == 0)                                                                                              \
-        return 0;                                                                                                        \
-    SQLiteDatabase db(DISPATCHER_DATABASE);                                                                              \
-    db.open();                                                                                                           \
-    SQLiteStatement stmt = db.compileStatement(sql);                                                                     \
-    int res = 0;                                                                                                         \
-    for (int i = 0; i < objVec.size(); i++)                                                                              \
-    {                                                                                                                    \
-        STMT_BIND(__VA_ARGS__, i, objVec);                                                                               \
-        res = stmt.executeUpdateDelete();                                                                                \
-        if (res < 0)                                                                                                     \
-        {                                                                                                                \
-            std::cout << __FILE__ << ": " << __LINE__ << " Error: " << db.errcode() << ", " << db.errmsg() << std::endl; \
-            StaticDefines::sqlite_error_msg = db.errmsg();                                                               \
-            break;                                                                                                       \
-        }                                                                                                                \
-        stmt.clearBindings();                                                                                            \
-    }                                                                                                                    \
-    if (res < 0)                                                                                                         \
-        db.rollbackTransaction();                                                                                        \
-    else                                                                                                                 \
-        db.commitTransaction();                                                                                          \
-    db.close();                                                                                                          \
+#define UpdateByVector(sql, objVec, ...)                       \
+    if (objVec.size() == 0)                                    \
+        return 0;                                              \
+    SQLiteDatabase db(DISPATCHER_DATABASE);                    \
+    db.open();                                                 \
+    SQLiteStatement stmt = db.compileStatement(sql);           \
+    int res = 0;                                               \
+    if (stmt.isValid())                                        \
+    {                                                          \
+        for (int i = 0; i < objVec.size(); i++)                \
+        {                                                      \
+            STMT_BIND(__VA_ARGS__, i, objVec);                 \
+            res = stmt.executeUpdateDelete();                  \
+            if (res < 0)                                       \
+            {                                                  \
+                StaticDefines::sqlite_error_msg = db.errmsg(); \
+                break;                                         \
+            }                                                  \
+            stmt.clearBindings();                              \
+        }                                                      \
+        if (res < 0)                                           \
+            db.rollbackTransaction();                          \
+        else                                                   \
+            db.commitTransaction();                            \
+    }                                                          \
+    else                                                       \
+    {                                                          \
+        StaticDefines::sqlite_error_msg = db.errmsg();         \
+        res = SQLITEDATABASE_ERROR;                            \
+    }                                                          \
+    db.close();                                                \
     return res
 
 /////Query macros/////
-#define QryBegin(sql)                                \
-    SQLiteDatabase db(DISPATCHER_DATABASE);          \
-    db.open();                                       \
-    SQLiteStatement stmt = db.compileStatement(sql); \
-    db.beginTransaction();                           \
+#define QryBegin(sql)                                  \
+    StaticDefines::sqlite_error_msg = "";              \
+    SQLiteDatabase db(DISPATCHER_DATABASE);            \
+    db.open();                                         \
+    SQLiteStatement stmt = db.compileStatement(sql);   \
+    if (stmt.isValid())                                \
+    {                                                  \
+        db.beginTransaction();                         \
+    }                                                  \
+    else                                               \
+    {                                                  \
+        StaticDefines::sqlite_error_msg = db.errmsg(); \
+    }                                                  \
     SQLiteResultSet resultSet = stmt.executeQuery()
-#define QryEnd              \
-    db.commitTransaction(); \
+#define QryEnd                  \
+    if (stmt.isValid())         \
+    {                           \
+        db.commitTransaction(); \
+    }                           \
     db.close()
 
 /////Delete macros/////
-#define DeleteByVector(sql, objVec, ...)                                                                                 \
-    if (objVec.size() == 0)                                                                                              \
-        return 0;                                                                                                        \
-    SQLiteDatabase db(DISPATCHER_DATABASE);                                                                              \
-    db.open();                                                                                                           \
-    SQLiteStatement stmt = db.compileStatement(sql);                                                                     \
-    db.beginTransaction();                                                                                               \
-    int res = 0;                                                                                                         \
-    for (int i = 0; i < objVec.size(); i++)                                                                              \
-    {                                                                                                                    \
-        STMT_BIND(__VA_ARGS__, i, objVec);                                                                               \
-        res = stmt.executeUpdateDelete();                                                                                \
-        if (res < 0)                                                                                                     \
-        {                                                                                                                \
-            std::cout << __FILE__ << ": " << __LINE__ << " Error: " << db.errcode() << ", " << db.errmsg() << std::endl; \
-            StaticDefines::sqlite_error_msg = db.errmsg();                                                               \
-            break;                                                                                                       \
-        }                                                                                                                \
-        stmt.clearBindings();                                                                                            \
-    }                                                                                                                    \
-    if (res < 0)                                                                                                         \
-        db.rollbackTransaction();                                                                                        \
-    else                                                                                                                 \
-        db.commitTransaction();                                                                                          \
-    db.close();                                                                                                          \
+#define DeleteByVector(sql, objVec, ...)                       \
+    if (objVec.size() == 0)                                    \
+        return 0;                                              \
+    SQLiteDatabase db(DISPATCHER_DATABASE);                    \
+    db.open();                                                 \
+    SQLiteStatement stmt = db.compileStatement(sql);           \
+    int res = 0;                                               \
+    if (stmt.isValid())                                        \
+    {                                                          \
+        db.beginTransaction();                                 \
+        for (int i = 0; i < objVec.size(); i++)                \
+        {                                                      \
+            STMT_BIND(__VA_ARGS__, i, objVec);                 \
+            res = stmt.executeUpdateDelete();                  \
+            if (res < 0)                                       \
+            {                                                  \
+                StaticDefines::sqlite_error_msg = db.errmsg(); \
+                break;                                         \
+            }                                                  \
+            stmt.clearBindings();                              \
+        }                                                      \
+        if (res < 0)                                           \
+            db.rollbackTransaction();                          \
+        else                                                   \
+            db.commitTransaction();                            \
+    }                                                          \
+    else                                                       \
+    {                                                          \
+        res = SQLITEDATABASE_ERROR;                            \
+        StaticDefines::sqlite_error_msg = db.errmsg();         \
+    }                                                          \
+    db.close();                                                \
     return res
 
 #define QryBySql(T, sql) qry##T##BySql(sql)

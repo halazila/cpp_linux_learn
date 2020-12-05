@@ -51,6 +51,7 @@ public:
     ~SQLiteStatement();
     SQLiteStatement(const SQLiteStatement &stat) = delete;
     SQLiteStatement(SQLiteStatement &&stat);
+    bool isValid();
     //drop/create table,view,triger,index etc,
     //return value: 0-success, -1-error
     int execute();

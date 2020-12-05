@@ -1,5 +1,0 @@
-/home/xiongbaohua/source/StragetyDeployer/CMakeFiles/rebuild_cache.dir
-/home/xiongbaohua/source/StragetyDeployer/CMakeFiles/edit_cache.dir
-/home/xiongbaohua/source/StragetyDeployer/CMakeFiles/service_test.dir
-/home/xiongbaohua/source/StragetyDeployer/CMakeFiles/manager_test.dir
-/home/xiongbaohua/source/StragetyDeployer/CMakeFiles/sqlite_test.dir

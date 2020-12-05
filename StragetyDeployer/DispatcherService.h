@@ -182,10 +182,19 @@ void DispatcherService::onQryBySql(shared_ptr<DispatcherClient> client, const st
     outerSendMsg(socket, &stype, sizeof(int), true);
     //response
     ReqResponse rsp;
+    memset(&rsp, 0, sizeof(rsp));
     rsp.RequestID = requestId;
     rsp.CmdType = ECommandType::TQuery;
-    rsp.ErrorID = EResponseErrType::TSuccess;
-    strcpy(rsp.ErrMsg, "Query Successfully");
+    if (StaticDefines::sqlite_error_msg.empty())
+    {
+        rsp.ErrorID = EResponseErrType::TSuccess;
+        strcpy(rsp.ErrMsg, "Query Successfully");
+    }
+    else
+    {
+        rsp.ErrorID = EResponseErrType::TDbError;
+        strncpy(rsp.ErrMsg, StaticDefines::sqlite_error_msg.c_str(), sizeof(rsp.ErrMsg) - 1);
+    }
     outerSendMsg(socket, &rsp, sizeof(rsp), true);
     //element type
     outerSendMsg(socket, &eletype, sizeof(eletype), qryObjs.size() > 0);
@@ -206,12 +215,12 @@ void DispatcherService::onDelBySql(shared_ptr<DispatcherClient> client, const st
     int stype = STCMsgPattern::TPassiveResponse;
     outerSendMsg(socket, &stype, sizeof(int), true);
     ReqResponse rsp;
+    memset(&rsp, 0, sizeof(rsp));
     rsp.RequestID = requestId;
     rsp.CmdType = ECommandType::TDelByCol;
     if (res < 0)
     {
         rsp.ErrorID = EResponseErrType::TDbError;
-        // strcpy(rsp.ErrMsg, "Delete Failed");
         strncpy(rsp.ErrMsg, StaticDefines::sqlite_error_msg.c_str(), sizeof(rsp.ErrMsg) - 1);
     }
     else
@@ -233,12 +242,12 @@ void DispatcherService::onInsByObjects(shared_ptr<DispatcherClient> client, cons
     int stype = STCMsgPattern::TPassiveResponse;
     outerSendMsg(socket, &stype, sizeof(int), true);
     ReqResponse rsp;
+    memset(&rsp, 0, sizeof(rsp));
     rsp.RequestID = requestId;
     rsp.CmdType = ECommandType::TInsert;
     if (res < 0)
     {
         rsp.ErrorID = EResponseErrType::TDbError;
-        // strcpy(rsp.ErrMsg, "Insert Failed");
         strncpy(rsp.ErrMsg, StaticDefines::sqlite_error_msg.c_str(), sizeof(rsp.ErrMsg) - 1);
     }
     else
@@ -260,12 +269,12 @@ void DispatcherService::onDelByObjects(shared_ptr<DispatcherClient> client, cons
     int stype = STCMsgPattern::TPassiveResponse;
     outerSendMsg(socket, &stype, sizeof(int), true);
     ReqResponse rsp;
+    memset(&rsp, 0, sizeof(rsp));
     rsp.RequestID = requestId;
     rsp.CmdType = ECommandType::TDelete;
     if (res < 0)
     {
         rsp.ErrorID = EResponseErrType::TDbError;
-        // strcpy(rsp.ErrMsg, "Delete Failed");
         strncpy(rsp.ErrMsg, StaticDefines::sqlite_error_msg.c_str(), sizeof(rsp.ErrMsg) - 1);
     }
     else
@@ -287,12 +296,12 @@ void DispatcherService::onUpdByObjects(shared_ptr<DispatcherClient> client, cons
     int stype = STCMsgPattern::TPassiveResponse;
     outerSendMsg(socket, &stype, sizeof(int), true);
     ReqResponse rsp;
+    memset(&rsp, 0, sizeof(rsp));
     rsp.RequestID = requestId;
     rsp.CmdType = ECommandType::TUpdate;
     if (res < 0)
     {
         rsp.ErrorID = EResponseErrType::TDbError;
-        // strcpy(rsp.ErrMsg, "Delete Failed");
         strncpy(rsp.ErrMsg, StaticDefines::sqlite_error_msg.c_str(), sizeof(rsp.ErrMsg) - 1);
     }
     else

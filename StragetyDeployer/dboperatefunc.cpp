@@ -94,23 +94,30 @@ vector<DeployGroup> qryDeployGroupBySql(const string &sql)
 //delete by sql
 int delBySql(const string &sql)
 {
+    StaticDefines::sqlite_error_msg = "";
     if (sql.size())
     {
         SQLiteDatabase db(DISPATCHER_DATABASE);
         db.open();
         SQLiteStatement stmt = db.compileStatement(sql);
-        db.beginTransaction();
-        int res = 0;
-        res = stmt.executeUpdateDelete();
-        if (res < 0)
+        int res = SQLITEDATABASE_ERROR;
+        if (stmt.isValid())
         {
-            std::cout << __FILE__ << ": " << __LINE__ << " Error: " << db.errcode() << ", " << db.errmsg() << std::endl;
+            db.beginTransaction();
+            res = stmt.executeUpdateDelete();
+            if (res < 0)
+            {
+                StaticDefines::sqlite_error_msg = db.errmsg();
+            }
+            if (res < 0)
+                db.rollbackTransaction();
+            else
+                db.commitTransaction();
+        }
+        else
+        {
             StaticDefines::sqlite_error_msg = db.errmsg();
         }
-        if (res < 0)
-            db.rollbackTransaction();
-        else
-            db.commitTransaction();
         db.close();
         return res;
     }
