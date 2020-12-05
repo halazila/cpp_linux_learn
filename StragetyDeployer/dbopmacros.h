@@ -108,6 +108,7 @@
         if (res < 0)                                                                                                     \
         {                                                                                                                \
             std::cout << __FILE__ << ": " << __LINE__ << " Error: " << db.errcode() << ", " << db.errmsg() << std::endl; \
+            StaticDefines::sqlite_error_msg = db.errmsg();                                                               \
             break;                                                                                                       \
         }                                                                                                                \
         stmt.clearBindings();                                                                                            \
@@ -134,6 +135,7 @@
         if (res < 0)                                                                                                     \
         {                                                                                                                \
             std::cout << __FILE__ << ": " << __LINE__ << " Error: " << db.errcode() << ", " << db.errmsg() << std::endl; \
+            StaticDefines::sqlite_error_msg = db.errmsg();                                                               \
             break;                                                                                                       \
         }                                                                                                                \
         stmt.clearBindings();                                                                                            \
@@ -172,6 +174,7 @@
         if (res < 0)                                                                                                     \
         {                                                                                                                \
             std::cout << __FILE__ << ": " << __LINE__ << " Error: " << db.errcode() << ", " << db.errmsg() << std::endl; \
+            StaticDefines::sqlite_error_msg = db.errmsg();                                                               \
             break;                                                                                                       \
         }                                                                                                                \
         stmt.clearBindings();                                                                                            \

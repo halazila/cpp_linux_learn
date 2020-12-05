@@ -179,6 +179,36 @@ AsyncZmqApi.cpp.s:
 	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/AsyncZmqApi.cpp.s
 .PHONY : AsyncZmqApi.cpp.s
 
+CommonStruct.o: CommonStruct.cpp.o
+
+.PHONY : CommonStruct.o
+
+# target to build an object file
+CommonStruct.cpp.o:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/CommonStruct.cpp.o
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/CommonStruct.cpp.o
+.PHONY : CommonStruct.cpp.o
+
+CommonStruct.i: CommonStruct.cpp.i
+
+.PHONY : CommonStruct.i
+
+# target to preprocess a source file
+CommonStruct.cpp.i:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/CommonStruct.cpp.i
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/CommonStruct.cpp.i
+.PHONY : CommonStruct.cpp.i
+
+CommonStruct.s: CommonStruct.cpp.s
+
+.PHONY : CommonStruct.s
+
+# target to generate assembly for a file
+CommonStruct.cpp.s:
+	$(MAKE) -f CMakeFiles/service_test.dir/build.make CMakeFiles/service_test.dir/CommonStruct.cpp.s
+	$(MAKE) -f CMakeFiles/manager_test.dir/build.make CMakeFiles/manager_test.dir/CommonStruct.cpp.s
+.PHONY : CommonStruct.cpp.s
+
 DispManagerImpl.o: DispManagerImpl.cpp.o
 
 .PHONY : DispManagerImpl.o
@@ -427,6 +457,9 @@ help:
 	@echo "... AsyncZmqApi.o"
 	@echo "... AsyncZmqApi.i"
 	@echo "... AsyncZmqApi.s"
+	@echo "... CommonStruct.o"
+	@echo "... CommonStruct.i"
+	@echo "... CommonStruct.s"
 	@echo "... DispManagerImpl.o"
 	@echo "... DispManagerImpl.i"
 	@echo "... DispManagerImpl.s"

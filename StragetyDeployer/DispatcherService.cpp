@@ -273,7 +273,7 @@ void DispatcherService::onRecvCmd(int cmd, shared_ptr<DispatcherClient> client)
             colFilterVec.push_back(filter);
         }
         char ch[64] = {0};
-        sprintf(ch, "select * from %s where 1=1", AllTableNames[eletype]);
+        sprintf(ch, "select * from %s where 1=1", StaticDefines::AllTableNames[eletype]);
         string sql = ch;
         for (int i = 0; i < colFilterVec.size(); i++)
         {
@@ -299,6 +299,60 @@ void DispatcherService::onRecvCmd(int cmd, shared_ptr<DispatcherClient> client)
             break;
         case EElementType::TDeployGroup:
             threadPool.submit(std::bind(&DispatcherService::onQryBySql<DeployGroup>, this, client, std::move(sql), eletype, reqid));
+            break;
+        default:
+            break;
+        }
+    }
+    break;
+    case ECommandType::TDelByCol:
+    {
+        int reqid = 0;
+        recvPodObject<int>(message, reqid);
+        int eletype = 0;
+        recvPodObject<int>(message, eletype);
+        vector<ColumnFilter> colFilterVec;
+        int more = 0;
+        auto more_size = sizeof(more);
+        ColumnFilter filter;
+        while (1)
+        {
+            m_sockBind.getsockopt(ZMQ_RCVMORE, &more, &more_size);
+            if (!more)
+                break;
+            m_sockBind.recv(message);
+            filter.ColName = string((char *)message.data(), message.size());
+            m_sockBind.recv(message);
+            filter.ColVal = string((char *)message.data(), message.size());
+            colFilterVec.push_back(filter);
+        }
+        char ch[64] = {0};
+        sprintf(ch, "delete from %s where 1=1", StaticDefines::AllTableNames[eletype]);
+        string sql = ch;
+        for (int i = 0; i < colFilterVec.size(); i++)
+        {
+            memset(ch, 0, sizeof(ch));
+            sprintf(ch, " and %s=\"%s\"",
+                    colFilterVec[i].ColName.c_str(), colFilterVec[i].ColVal.c_str());
+            sql += ch;
+        }
+        sql += ";";
+        switch (eletype)
+        {
+        case EElementType::TManageUser:
+            threadPool.submit(std::bind(&DispatcherService::onDelBySql<ManageUser>, this, client, std::move(sql), eletype, reqid));
+            break;
+        case EElementType::TServerConfig:
+            threadPool.submit(std::bind(&DispatcherService::onDelBySql<ServerConfig>, this, client, std::move(sql), eletype, reqid));
+            break;
+        case EElementType::TStrategyConfig:
+            threadPool.submit(std::bind(&DispatcherService::onDelBySql<StrategyConfig>, this, client, std::move(sql), eletype, reqid));
+            break;
+        case EElementType::TDeployConfig:
+            threadPool.submit(std::bind(&DispatcherService::onDelBySql<DeployConfig>, this, client, std::move(sql), eletype, reqid));
+            break;
+        case EElementType::TDeployGroup:
+            threadPool.submit(std::bind(&DispatcherService::onDelBySql<DeployGroup>, this, client, std::move(sql), eletype, reqid));
             break;
         default:
             break;

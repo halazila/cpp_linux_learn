@@ -1,5 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/service_test.dir/AsyncZmqApi.cpp.o"
+  "CMakeFiles/service_test.dir/CommonStruct.cpp.o"
   "CMakeFiles/service_test.dir/DispManagerImpl.cpp.o"
   "CMakeFiles/service_test.dir/DispatcherManager.cpp.o"
   "CMakeFiles/service_test.dir/DispatcherService.cpp.o"

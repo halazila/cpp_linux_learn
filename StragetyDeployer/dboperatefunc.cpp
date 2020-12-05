@@ -91,6 +91,31 @@ vector<DeployGroup> qryDeployGroupBySql(const string &sql)
     QryEnd;
     return std::move(res);
 }
+//delete by sql
+int delBySql(const string &sql)
+{
+    if (sql.size())
+    {
+        SQLiteDatabase db(DISPATCHER_DATABASE);
+        db.open();
+        SQLiteStatement stmt = db.compileStatement(sql);
+        db.beginTransaction();
+        int res = 0;
+        res = stmt.executeUpdateDelete();
+        if (res < 0)
+        {
+            std::cout << __FILE__ << ": " << __LINE__ << " Error: " << db.errcode() << ", " << db.errmsg() << std::endl;
+            StaticDefines::sqlite_error_msg = db.errmsg();
+        }
+        if (res < 0)
+            db.rollbackTransaction();
+        else
+            db.commitTransaction();
+        db.close();
+        return res;
+    }
+    return 0;
+}
 //delete, return effected rows if success, else -1;
 int delManagerUser(const vector<ManageUser> &objVec)
 {

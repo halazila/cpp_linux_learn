@@ -26,11 +26,3 @@ sqlite3.h
 stdarg.h
 -
 
-/home/xiongbaohua/source/StragetyDeployer/sqlite_test.cpp
-string
--
-iostream
--
-SQLiteDatabase.h
-/home/xiongbaohua/source/StragetyDeployer/SQLiteDatabase.h
-

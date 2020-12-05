@@ -89,6 +89,28 @@ int DispatcherManager::ReqQryByColumnFilter(const vector<ColumnFilter> &filterVe
     return ERROR_SUCCESS;
 }
 
+int DispatcherManager::ReqDelByColumnFilter(const vector<ColumnFilter> &filterVec, int eleType, int nRequestId)
+{
+    if (!azmqApi.IsConnected())
+    {
+        return ERROR_NOCONNECT;
+    }
+    zmq::socket_t sock = azmqApi.InProcSocket();
+    // managerid->cmd->requestid->eletype->elements
+    azmqApi.Send(sock, m_strIdentity.c_str(), m_strIdentity.length(), false);
+    int cmd = ECommandType::TDelByCol;
+    azmqApi.Send(sock, (char *)&cmd, sizeof(cmd), false);
+    azmqApi.Send(sock, (char *)&nRequestId, sizeof(int), false);
+    azmqApi.Send(sock, (char *)&eleType, sizeof(eleType), filterVec.size() == 0);
+    int n = filterVec.size();
+    for (int i = 0; i < n; i++)
+    {
+        azmqApi.Send(sock, filterVec[i].ColName.c_str(), filterVec[i].ColName.size(), false);
+        azmqApi.Send(sock, filterVec[i].ColVal.c_str(), filterVec[i].ColVal.size(), i == n - 1);
+    }
+    return ERROR_SUCCESS;
+}
+
 int DispatcherManager::ReqDeployExecuteFinish(const vector<DeployGroup> &depGrpVec, int nRequestId, int actType)
 {
     if (!azmqApi.IsConnected())
@@ -303,6 +325,9 @@ void DispatcherManager::onReqRsp(ReqResponse &reqRsp)
     case ECommandType::TDelete:
         OnRspDelete(&reqRsp, reqRsp.RequestID);
         break;
+    case ECommandType::TDelByCol:
+        OnRspDelete(&reqRsp, reqRsp.RequestID);
+        break;
     case ECommandType::TUpdate:
         OnRspUpdate(&reqRsp, reqRsp.RequestID);
         break;
@@ -320,23 +345,18 @@ void DispatcherManager::onReqRsp(ReqResponse &reqRsp, int nEleType, char *data, 
         switch (nEleType)
         {
         case EElementType::TManageUser:
-            assert(len == sizeof(ManageUser));
             OnRspQryManageUser(&reqRsp, (ManageUser *)data, reqRsp.RequestID, bLast);
             break;
         case EElementType::TServerConfig:
-            assert(len == sizeof(ServerConfig));
             OnRspQryServerConfig(&reqRsp, (ServerConfig *)data, reqRsp.RequestID, bLast);
             break;
         case EElementType::TStrategyConfig:
-            assert(len == sizeof(StrategyConfig));
             OnRspQryStrategyConfig(&reqRsp, (StrategyConfig *)data, reqRsp.RequestID, bLast);
             break;
         case EElementType::TDeployConfig:
-            assert(len == sizeof(DeployConfig));
             OnRspQryDeployConfig(&reqRsp, (DeployConfig *)data, reqRsp.RequestID, bLast);
             break;
         case EElementType::TDeployGroup:
-            assert(len == sizeof(DeployGroup));
             OnRspQryDeployGroup(&reqRsp, (DeployGroup *)data, reqRsp.RequestID, bLast);
             break;
         default:

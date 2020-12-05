@@ -14,6 +14,8 @@ vector<ServerConfig> qryServerConfigBySql(const string &sql);
 vector<StrategyConfig> qryStrategyConfigBySql(const string &sql);
 vector<DeployConfig> qryDeployConfigBySql(const string &sql);
 vector<DeployGroup> qryDeployGroupBySql(const string &sql);
+//delete by sql
+int delBySql(const string &sql);
 //delete, return effected rows if success, else -1;
 int delManagerUser(const vector<ManageUser> &objVec);
 int delServerConfig(const vector<ServerConfig> &objVec);

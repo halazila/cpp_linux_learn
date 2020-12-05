@@ -1,5 +1,5 @@
+
 #pragma once
-#include <string>
 
 #pragma pack(push, 4)
 /////数据库表元素-begin/////
@@ -67,7 +67,8 @@ enum ECommandType : int
     TKeepAlive,
     TQuery,
     TInsert,
-    TDelete,
+    TDelete,   //删除对象
+    TDelByCol, //按筛选条件删除
     TUpdate,
     TDeploy,
     TExecute,
@@ -81,14 +82,6 @@ enum EElementType : int
     TStrategyConfig,
     TDeployConfig,
     TDeployGroup,
-};
-//表名映射
-static const char *AllTableNames[] = {
-    "ManageUser",
-    "ServerConfig",
-    "StrategyConfig",
-    "DeployConfig",
-    "DeployGroup",
 };
 //server to client message pattern
 enum STCMsgPattern : int
@@ -116,7 +109,6 @@ enum EMsgRecvState : int
     StatGetRsp,
     StatGetEleType,
 };
-
 //表列筛选条件
 struct ColumnFilter
 {
@@ -130,3 +122,17 @@ struct ColumnFilter
 //**server-->client**//
 //PassiveResponse->Response->[element-type->element...]
 //     ActivePush->cmd-type->[element-type->element...]
+
+////特殊变量声明
+//表名映射
+
+class StaticDefines
+{
+public:
+    thread_local static std::string sqlite_error_msg;
+    static const char *AllTableNames[];
+
+public:
+    StaticDefines(/* args */) {}
+    ~StaticDefines() {}
+};

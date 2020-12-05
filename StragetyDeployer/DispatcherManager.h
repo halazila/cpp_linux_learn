@@ -34,6 +34,8 @@ public:
     int ReqLogout(int nRequestId);
     ///query
     int ReqQryByColumnFilter(const vector<ColumnFilter> &filterVec, int eleType, int nRequestId);
+    ///delete by column filter
+    int ReqDelByColumnFilter(const vector<ColumnFilter> &filterVec, int eleType, int nRequestId);
     ///insert/update/delete,
     template <class T>
     int ReqInsUpdDelByEletype(const vector<T> &eleVec, int eleType, int nRequestId, ECommandType cmd);

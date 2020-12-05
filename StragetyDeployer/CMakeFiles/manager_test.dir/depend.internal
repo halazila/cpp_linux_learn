@@ -5,6 +5,9 @@ CMakeFiles/manager_test.dir/AsyncZmqApi.cpp.o
  /home/xiongbaohua/source/StragetyDeployer/AsyncZmqApi.cpp
  /home/xiongbaohua/source/StragetyDeployer/AsyncZmqApi.h
  /home/xiongbaohua/source/StragetyDeployer/CommonStruct.h
+CMakeFiles/manager_test.dir/CommonStruct.cpp.o
+ /home/xiongbaohua/source/StragetyDeployer/CommonStruct.cpp
+ /home/xiongbaohua/source/StragetyDeployer/CommonStruct.h
 CMakeFiles/manager_test.dir/DispManagerImpl.cpp.o
  /home/xiongbaohua/source/StragetyDeployer/AsyncZmqApi.h
  /home/xiongbaohua/source/StragetyDeployer/CommonStruct.h

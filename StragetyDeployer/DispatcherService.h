@@ -133,6 +133,8 @@ private:
     template <class T>
     void onQryBySql(shared_ptr<DispatcherClient> client, const string &sql, int eletype, int requestId);
     template <class T>
+    void onDelBySql(shared_ptr<DispatcherClient> client, const string &sql, int eletype, int requestId);
+    template <class T>
     void onInsByObjects(shared_ptr<DispatcherClient> client, const vector<T> &objVec, int requestId);
     template <class T>
     void onDelByObjects(shared_ptr<DispatcherClient> client, const vector<T> &objVec, int requestId);
@@ -184,7 +186,7 @@ void DispatcherService::onQryBySql(shared_ptr<DispatcherClient> client, const st
     rsp.CmdType = ECommandType::TQuery;
     rsp.ErrorID = EResponseErrType::TSuccess;
     strcpy(rsp.ErrMsg, "Query Successfully");
-    outerSendMsg(socket, &rsp, sizeof(rsp), qryObjs.size() > 0);
+    outerSendMsg(socket, &rsp, sizeof(rsp), true);
     //element type
     outerSendMsg(socket, &eletype, sizeof(eletype), qryObjs.size() > 0);
     //elements
@@ -192,6 +194,33 @@ void DispatcherService::onQryBySql(shared_ptr<DispatcherClient> client, const st
     {
         outerSendMsg(socket, &qryObjs[i], sizeof(T), i < qryObjs.size() - 1);
     }
+}
+template <class T>
+void DispatcherService::onDelBySql(shared_ptr<DispatcherClient> client, const string &sql, int eletype, int requestId)
+{
+    unique_lock<decltype(m_mtxSqlite)> sqliteLock(m_mtxSqlite);
+    int res = delBySql(sql);
+    sqliteLock.unlock();
+    zmq::socket_t socket = inProcSocket();
+    outerSendMsg(socket, (void *)client->m_strRouter.c_str(), client->m_strRouter.length(), true);
+    int stype = STCMsgPattern::TPassiveResponse;
+    outerSendMsg(socket, &stype, sizeof(int), true);
+    ReqResponse rsp;
+    rsp.RequestID = requestId;
+    rsp.CmdType = ECommandType::TDelByCol;
+    if (res < 0)
+    {
+        rsp.ErrorID = EResponseErrType::TDbError;
+        // strcpy(rsp.ErrMsg, "Delete Failed");
+        strncpy(rsp.ErrMsg, StaticDefines::sqlite_error_msg.c_str(), sizeof(rsp.ErrMsg) - 1);
+    }
+    else
+    {
+        rsp.ErrorID = EResponseErrType::TSuccess;
+        strcpy(rsp.ErrMsg, "Delete Successfully");
+        storeCacheBool<T>(true);
+    }
+    outerSendMsg(socket, &rsp, sizeof(rsp));
 }
 template <class T>
 void DispatcherService::onInsByObjects(shared_ptr<DispatcherClient> client, const vector<T> &objVec, int requestId)
@@ -209,7 +238,8 @@ void DispatcherService::onInsByObjects(shared_ptr<DispatcherClient> client, cons
     if (res < 0)
     {
         rsp.ErrorID = EResponseErrType::TDbError;
-        strcpy(rsp.ErrMsg, "Insert Failed");
+        // strcpy(rsp.ErrMsg, "Insert Failed");
+        strncpy(rsp.ErrMsg, StaticDefines::sqlite_error_msg.c_str(), sizeof(rsp.ErrMsg) - 1);
     }
     else
     {
@@ -235,7 +265,8 @@ void DispatcherService::onDelByObjects(shared_ptr<DispatcherClient> client, cons
     if (res < 0)
     {
         rsp.ErrorID = EResponseErrType::TDbError;
-        strcpy(rsp.ErrMsg, "Delete Failed");
+        // strcpy(rsp.ErrMsg, "Delete Failed");
+        strncpy(rsp.ErrMsg, StaticDefines::sqlite_error_msg.c_str(), sizeof(rsp.ErrMsg) - 1);
     }
     else
     {
@@ -261,7 +292,8 @@ void DispatcherService::onUpdByObjects(shared_ptr<DispatcherClient> client, cons
     if (res < 0)
     {
         rsp.ErrorID = EResponseErrType::TDbError;
-        strcpy(rsp.ErrMsg, "Update Failed");
+        // strcpy(rsp.ErrMsg, "Delete Failed");
+        strncpy(rsp.ErrMsg, StaticDefines::sqlite_error_msg.c_str(), sizeof(rsp.ErrMsg) - 1);
     }
     else
     {

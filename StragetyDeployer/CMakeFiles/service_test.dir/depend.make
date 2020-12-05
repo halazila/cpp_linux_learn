@@ -5,6 +5,9 @@ CMakeFiles/service_test.dir/AsyncZmqApi.cpp.o: AsyncZmqApi.cpp
 CMakeFiles/service_test.dir/AsyncZmqApi.cpp.o: AsyncZmqApi.h
 CMakeFiles/service_test.dir/AsyncZmqApi.cpp.o: CommonStruct.h
 
+CMakeFiles/service_test.dir/CommonStruct.cpp.o: CommonStruct.cpp
+CMakeFiles/service_test.dir/CommonStruct.cpp.o: CommonStruct.h
+
 CMakeFiles/service_test.dir/DispManagerImpl.cpp.o: AsyncZmqApi.h
 CMakeFiles/service_test.dir/DispManagerImpl.cpp.o: CommonStruct.h
 CMakeFiles/service_test.dir/DispManagerImpl.cpp.o: DispManagerImpl.cpp

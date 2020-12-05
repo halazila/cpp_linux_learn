@@ -83,9 +83,22 @@ CMakeFiles/manager_test.dir/AsyncZmqApi.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/manager_test.dir/AsyncZmqApi.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/xiongbaohua/source/StragetyDeployer/AsyncZmqApi.cpp -o CMakeFiles/manager_test.dir/AsyncZmqApi.cpp.s
 
+CMakeFiles/manager_test.dir/CommonStruct.cpp.o: CMakeFiles/manager_test.dir/flags.make
+CMakeFiles/manager_test.dir/CommonStruct.cpp.o: CommonStruct.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xiongbaohua/source/StragetyDeployer/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/manager_test.dir/CommonStruct.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/manager_test.dir/CommonStruct.cpp.o -c /home/xiongbaohua/source/StragetyDeployer/CommonStruct.cpp
+
+CMakeFiles/manager_test.dir/CommonStruct.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/manager_test.dir/CommonStruct.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/xiongbaohua/source/StragetyDeployer/CommonStruct.cpp > CMakeFiles/manager_test.dir/CommonStruct.cpp.i
+
+CMakeFiles/manager_test.dir/CommonStruct.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/manager_test.dir/CommonStruct.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/xiongbaohua/source/StragetyDeployer/CommonStruct.cpp -o CMakeFiles/manager_test.dir/CommonStruct.cpp.s
+
 CMakeFiles/manager_test.dir/DispatcherManager.cpp.o: CMakeFiles/manager_test.dir/flags.make
 CMakeFiles/manager_test.dir/DispatcherManager.cpp.o: DispatcherManager.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xiongbaohua/source/StragetyDeployer/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/manager_test.dir/DispatcherManager.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xiongbaohua/source/StragetyDeployer/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/manager_test.dir/DispatcherManager.cpp.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/manager_test.dir/DispatcherManager.cpp.o -c /home/xiongbaohua/source/StragetyDeployer/DispatcherManager.cpp
 
 CMakeFiles/manager_test.dir/DispatcherManager.cpp.i: cmake_force
@@ -98,7 +111,7 @@ CMakeFiles/manager_test.dir/DispatcherManager.cpp.s: cmake_force
 
 CMakeFiles/manager_test.dir/DispatcherService.cpp.o: CMakeFiles/manager_test.dir/flags.make
 CMakeFiles/manager_test.dir/DispatcherService.cpp.o: DispatcherService.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xiongbaohua/source/StragetyDeployer/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/manager_test.dir/DispatcherService.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xiongbaohua/source/StragetyDeployer/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/manager_test.dir/DispatcherService.cpp.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/manager_test.dir/DispatcherService.cpp.o -c /home/xiongbaohua/source/StragetyDeployer/DispatcherService.cpp
 
 CMakeFiles/manager_test.dir/DispatcherService.cpp.i: cmake_force
@@ -111,7 +124,7 @@ CMakeFiles/manager_test.dir/DispatcherService.cpp.s: cmake_force
 
 CMakeFiles/manager_test.dir/DispManagerImpl.cpp.o: CMakeFiles/manager_test.dir/flags.make
 CMakeFiles/manager_test.dir/DispManagerImpl.cpp.o: DispManagerImpl.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xiongbaohua/source/StragetyDeployer/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/manager_test.dir/DispManagerImpl.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xiongbaohua/source/StragetyDeployer/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/manager_test.dir/DispManagerImpl.cpp.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/manager_test.dir/DispManagerImpl.cpp.o -c /home/xiongbaohua/source/StragetyDeployer/DispManagerImpl.cpp
 
 CMakeFiles/manager_test.dir/DispManagerImpl.cpp.i: cmake_force
@@ -124,7 +137,7 @@ CMakeFiles/manager_test.dir/DispManagerImpl.cpp.s: cmake_force
 
 CMakeFiles/manager_test.dir/dboperatefunc.cpp.o: CMakeFiles/manager_test.dir/flags.make
 CMakeFiles/manager_test.dir/dboperatefunc.cpp.o: dboperatefunc.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xiongbaohua/source/StragetyDeployer/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/manager_test.dir/dboperatefunc.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xiongbaohua/source/StragetyDeployer/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/manager_test.dir/dboperatefunc.cpp.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/manager_test.dir/dboperatefunc.cpp.o -c /home/xiongbaohua/source/StragetyDeployer/dboperatefunc.cpp
 
 CMakeFiles/manager_test.dir/dboperatefunc.cpp.i: cmake_force
@@ -137,7 +150,7 @@ CMakeFiles/manager_test.dir/dboperatefunc.cpp.s: cmake_force
 
 CMakeFiles/manager_test.dir/manager_test.cpp.o: CMakeFiles/manager_test.dir/flags.make
 CMakeFiles/manager_test.dir/manager_test.cpp.o: manager_test.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xiongbaohua/source/StragetyDeployer/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/manager_test.dir/manager_test.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xiongbaohua/source/StragetyDeployer/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/manager_test.dir/manager_test.cpp.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/manager_test.dir/manager_test.cpp.o -c /home/xiongbaohua/source/StragetyDeployer/manager_test.cpp
 
 CMakeFiles/manager_test.dir/manager_test.cpp.i: cmake_force
@@ -152,6 +165,7 @@ CMakeFiles/manager_test.dir/manager_test.cpp.s: cmake_force
 manager_test_OBJECTS = \
 "CMakeFiles/manager_test.dir/SQLiteDatabase.cpp.o" \
 "CMakeFiles/manager_test.dir/AsyncZmqApi.cpp.o" \
+"CMakeFiles/manager_test.dir/CommonStruct.cpp.o" \
 "CMakeFiles/manager_test.dir/DispatcherManager.cpp.o" \
 "CMakeFiles/manager_test.dir/DispatcherService.cpp.o" \
 "CMakeFiles/manager_test.dir/DispManagerImpl.cpp.o" \
@@ -163,6 +177,7 @@ manager_test_EXTERNAL_OBJECTS =
 
 manager_test: CMakeFiles/manager_test.dir/SQLiteDatabase.cpp.o
 manager_test: CMakeFiles/manager_test.dir/AsyncZmqApi.cpp.o
+manager_test: CMakeFiles/manager_test.dir/CommonStruct.cpp.o
 manager_test: CMakeFiles/manager_test.dir/DispatcherManager.cpp.o
 manager_test: CMakeFiles/manager_test.dir/DispatcherService.cpp.o
 manager_test: CMakeFiles/manager_test.dir/DispManagerImpl.cpp.o
@@ -170,7 +185,7 @@ manager_test: CMakeFiles/manager_test.dir/dboperatefunc.cpp.o
 manager_test: CMakeFiles/manager_test.dir/manager_test.cpp.o
 manager_test: CMakeFiles/manager_test.dir/build.make
 manager_test: CMakeFiles/manager_test.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/xiongbaohua/source/StragetyDeployer/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Linking CXX executable manager_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/xiongbaohua/source/StragetyDeployer/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking CXX executable manager_test"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/manager_test.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

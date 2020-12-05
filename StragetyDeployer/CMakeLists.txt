@@ -7,6 +7,7 @@ set(ZMQ_SOURCE
 ./AsyncZmqApi.h
 ./AsyncZmqApi.cpp
 ./CommonStruct.h
+./CommonStruct.cpp
 ./DispatcherManager.h
 ./DispatcherManager.cpp
 ./DispatcherService.h
