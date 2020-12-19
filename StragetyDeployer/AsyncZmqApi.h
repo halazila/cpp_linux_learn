@@ -59,6 +59,7 @@ public:
     int Connect();
     void Start();
     void Stop();
+    void Join();
     zmq::socket_t InProcSocket();
     //发送数据
     int Send(zmq::socket_t &socket, const char *data, int len, bool bLast = true);

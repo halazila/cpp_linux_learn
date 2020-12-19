@@ -83,6 +83,12 @@ void AsyncZmqApi::Stop()
     m_bStop = true;
 }
 
+void AsyncZmqApi::Join()
+{
+    if (m_thdPoll.joinable())
+        m_thdPoll.join();
+}
+
 zmq::socket_t AsyncZmqApi::InProcSocket()
 {
     zmq::socket_t socket(m_ctx, ZMQ_DEALER);

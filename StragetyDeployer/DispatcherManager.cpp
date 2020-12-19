@@ -30,6 +30,7 @@ int DispatcherManager::OpenAsyncApi()
 void DispatcherManager::CloseAsyncApi()
 {
     azmqApi.Stop();
+    azmqApi.Join();
 }
 
 int DispatcherManager::ReqLogin(const std::string &strid, int nRequestId)
