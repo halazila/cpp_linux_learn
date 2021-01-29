@@ -126,6 +126,8 @@ void FileLockFunc()
             fmutex.writeLock();
             (*num)++;
             printf("child------num++ %d\n", *num);
+            // if (i == 5) //exit without unlock, parent process can still lock success
+            //     exit(0);
             fmutex.unlock();
         }
     }
